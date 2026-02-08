@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gas Safety Dashboard</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      color: white;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      margin: 24px 0;
+      font-size: 1.8rem;
+    }
+
+    .card {
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 360px;
+      border-radius: 18px;
+      font-size: 1.2rem;
+      transition: 0.3s;
+    }
+
+    .safe {
+      background: #16a34a;
+    }
+
+    .danger {
+      background: #dc2626;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0.6; }
+    }
+
+    .info {
+      font-size: 1rem;
+      margin-top: 6px;
+    }
+
+    .chart-container {
+      width: 95%;
+      max-width: 900px;
+      margin: 30px auto;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: auto !important;
+    }
+
+    /* 📱 Mobile tweaks */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+      .card {
+        font-size: 1.05rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🔥 Gas Safety System</h1>
+
+<div id="status" class="card">Loading...</div>
+
+<h2>Gas Value: <span id="gas">--</span></h2>
+<div class="info">Status: <span id="state">--</span></div>
+<div class="info">Last Update: <span id="time">--</span></div>
+
+<!-- RESPONSIVE GRAPH -->
+<div class="chart-container">
+  <canvas id="gasChart"></canvas>
+</div>
+
+<script>
+/* ---------------- CONFIG ---------------- */
+const GAS_THRESHOLD = 400;
+const MAX_POINTS = 25;
+
+/* ---------------- CHART ---------------- */
+const ctx = document.getElementById("gasChart").getContext("2d");
+
+const gasChart = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: "Gas Sensor Value",
+        data: [],
+        borderWidth: 2,
+        tension: 0.3
+      },
+      {
+        label: "Threshold (400)",
+        data: [],
+        borderDash: [8, 6],
+        borderWidth: 2,
+        pointRadius: 0
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: false,
+    scales: {
+      y: {
+        min: 200,
+        max: 600,
+        title: {
+          display: true,
+          text: "Gas Value"
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: "Time"
+        }
+      }
+    }
+  }
+});
+
+/* ---------------- DATA UPDATE ---------------- */
+async function updateData() {
+  const res = await fetch("/data");
+  const data = await res.json();
+
+  document.getElementById("gas").innerText = data.gas;
+  document.getElementById("state").innerText = data.state;
+  document.getElementById("time").innerText = data.time;
+
+  const card = document.getElementById("status");
+
+  if (data.state === "ON") {
+    card.innerText = "🚨 GAS LEAK DETECTED";
+    card.className = "card danger";
+  } else {
+    card.innerText = "✅ GAS SAFE";
+    card.className = "card safe";
+  }
+
+  gasChart.data.labels.push(data.time);
+  gasChart.data.datasets[0].data.push(data.gas);
+  gasChart.data.datasets[1].data.push(GAS_THRESHOLD);
+
+  if (gasChart.data.labels.length > MAX_POINTS) {
+    gasChart.data.labels.shift();
+    gasChart.data.datasets[0].data.shift();
+    gasChart.data.datasets[1].data.shift();
+  }
+
+  gasChart.update();
+}
+
+setInterval(updateData, 1000);
+updateData();
+</script>
+
+</body>
+</html>
