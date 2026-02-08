@@ -3,6 +3,10 @@ import sqlite3
 from flask import Flask, jsonify, render_template
 from threading import Thread
 from datetime import datetime
+import os
+
+IS_CLOUD = os.environ.get("RENDER", False)
+
 
 SERIAL_PORT = "COM8"
 BAUD_RATE = 9600
@@ -77,7 +81,12 @@ def data():
             "time": ""
         })
 
-Thread(target=read_serial, daemon=True).start()
+if not IS_CLOUD:
+    Thread(target=read_serial, daemon=True).start()
+else:
+    print("☁️ Cloud mode: Serial disabled")
+
 
 app.run(host="0.0.0.0", port=5000, debug=True)
+
 
