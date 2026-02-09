@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gas Safety Dashboard</title>
 
   <!-- Chart.js -->
@@ -62,14 +62,9 @@
       height: auto !important;
     }
 
-    /* 📱 Mobile tweaks */
     @media (max-width: 600px) {
-      h1 {
-        font-size: 1.5rem;
-      }
-      .card {
-        font-size: 1.05rem;
-      }
+      h1 { font-size: 1.5rem; }
+      .card { font-size: 1.05rem; }
     }
   </style>
 </head>
@@ -78,13 +73,12 @@
 
 <h1>🔥 Gas Safety System</h1>
 
-<div id="status" class="card">Loading...</div>
+<div id="statusCard" class="card safe">Loading...</div>
 
 <h2>Gas Value: <span id="gas">--</span></h2>
 <div class="info">Status: <span id="state">--</span></div>
 <div class="info">Last Update: <span id="time">--</span></div>
 
-<!-- RESPONSIVE GRAPH -->
 <div class="chart-container">
   <canvas id="gasChart"></canvas>
 </div>
@@ -148,30 +142,49 @@ const gasChart = new Chart(ctx, {
 });
 
 async function updateData() {
-  const res = await fetch("/data", { cache: "no-store" });
-  const data = await res.json();
+  try {
+    const res = await fetch("/data", { cache: "no-store" });
+    const data = await res.json();
 
-  rawGas.push(data.gas);
-  const avg = movingAverage(rawGas, SMOOTH_WINDOW);
+    // ✅ UPDATE TEXT VALUES (THIS FIXES YOUR ISSUE)
+    document.getElementById("gas").innerText = data.gas;
+    document.getElementById("state").innerText = data.state;
+    document.getElementById("time").innerText = data.time;
 
-  labels.push(data.time);
-  smoothGas.push(avg);
-  thresholdData.push(GAS_THRESHOLD);
+    // ✅ STATUS CARD LOGIC
+    const card = document.getElementById("statusCard");
+    if (data.gas > GAS_THRESHOLD) {
+      card.className = "card danger";
+      card.innerText = "🚨 GAS LEAK DETECTED";
+    } else {
+      card.className = "card safe";
+      card.innerText = "✅ GAS SAFE";
+    }
 
-  if (labels.length > MAX_POINTS) {
-    labels.shift();
-    smoothGas.shift();
-    thresholdData.shift();
+    // ---- GRAPH UPDATE ----
+    rawGas.push(data.gas);
+    const avg = movingAverage(rawGas, SMOOTH_WINDOW);
+
+    labels.push(data.time);
+    smoothGas.push(avg);
+    thresholdData.push(GAS_THRESHOLD);
+
+    if (labels.length > MAX_POINTS) {
+      labels.shift();
+      smoothGas.shift();
+      thresholdData.shift();
+    }
+
+    gasChart.update();
+
+  } catch (err) {
+    console.error("Update failed:", err);
   }
-
-  gasChart.update();
 }
 
 setInterval(updateData, 1000);
 updateData();
 </script>
 
-
 </body>
 </html>
-
