@@ -11,7 +11,7 @@ GAS_THRESHOLD = 400   # change if needed
 
 # 🔴 CHANGE THESE
 EMAIL_SENDER = "dharsanudayakumar@gmail.com"
-EMAIL_PASSWORD = "kffl iocs diig znlj"
+EMAIL_PASSWORD = "wyth hhug ujgr zepw"
 EMAIL_RECEIVER = "dharsanfiitjee@gmail.com"
 
 # ---------------- LIVE CLOUD STATE ----------------
@@ -88,3 +88,4 @@ def update():
 # ---------------- START SERVER ----------------
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port)
+
