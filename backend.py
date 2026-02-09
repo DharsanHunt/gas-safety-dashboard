@@ -7,33 +7,35 @@ from email.mime.text import MIMEText
 app = Flask(__name__)
 
 # ---------------- CONFIG ----------------
-GAS_THRESHOLD = 400   # change if needed
+GAS_THRESHOLD = 400
+RESET_THRESHOLD = 350   # hysteresis (important)
 
-# 🔴 CHANGE THESE
-EMAIL_SENDER = "dharsanudayakumar@gmail.com"
-EMAIL_PASSWORD = "wythhhugujgrzepw"
-EMAIL_RECEIVER = "dharsanfiitjee@gmail.com"
+EMAIL_SENDER = "yourgmail@gmail.com"
+EMAIL_PASSWORD = "YOUR_NEW_APP_PASSWORD"
+EMAIL_RECEIVER = "receiver@gmail.com"
 
-# ---------------- LIVE CLOUD STATE ----------------
+# ---------------- LIVE STATE ----------------
 latest_cloud_data = {
     "gas": 0,
     "state": "OFF",
     "time": ""
 }
 
-email_sent = False  # prevent spam
+email_sent = False
 
 # ---------------- EMAIL FUNCTION ----------------
 def send_email_alert(gas):
+    print("📧 send_email_alert() called")
+
     body = f"""
 🚨 GAS LEAK ALERT 🚨
 
-Gas concentration detected: {gas}
-Safe threshold exceeded: {GAS_THRESHOLD}
+Gas level detected: {gas}
+Threshold exceeded: {GAS_THRESHOLD}
 
 Time: {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}
 
-Please take immediate action!
+Please take immediate action.
 """
 
     msg = MIMEText(body)
@@ -47,7 +49,7 @@ Please take immediate action!
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
         server.send_message(msg)
         server.quit()
-        print("📧 Email alert sent!")
+        print("✅ Email sent successfully")
     except Exception as e:
         print("❌ Email failed:", e)
 
@@ -73,14 +75,16 @@ def update():
     latest_cloud_data["state"] = state
     latest_cloud_data["time"] = time
 
-    print("☁️ Cloud updated:", latest_cloud_data)
+    print("☁️ UPDATE:", latest_cloud_data)
+    print("🔍 email_sent:", email_sent)
 
-    # -------- EMAIL ALERT LOGIC --------
+    # -------- EMAIL LOGIC (GUARANTEED) --------
     if gas > GAS_THRESHOLD and not email_sent:
+        print("🚨 GAS ABOVE THRESHOLD — SENDING EMAIL")
         send_email_alert(gas)
         email_sent = True
 
-    if gas <= GAS_THRESHOLD:
+    elif gas < RESET_THRESHOLD:
         email_sent = False
 
     return {"status": "ok"}
@@ -88,5 +92,3 @@ def update():
 # ---------------- START SERVER ----------------
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port)
-
-
