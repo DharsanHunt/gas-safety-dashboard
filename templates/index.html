@@ -90,30 +90,43 @@
 </div>
 
 <script>
-/* ---------------- CONFIG ---------------- */
 const GAS_THRESHOLD = 400;
-const MAX_POINTS = 25;
+const MAX_POINTS = 30;
+const SMOOTH_WINDOW = 5;
 
-/* ---------------- CHART ---------------- */
+let labels = [];
+let rawGas = [];
+let smoothGas = [];
+let thresholdData = [];
+
+function movingAverage(data, window) {
+  if (data.length < window) return data[data.length - 1];
+  const slice = data.slice(-window);
+  return Math.round(slice.reduce((a, b) => a + b, 0) / window);
+}
+
 const ctx = document.getElementById("gasChart").getContext("2d");
 
 const gasChart = new Chart(ctx, {
   type: "line",
   data: {
-    labels: [],
+    labels: labels,
     datasets: [
       {
-        label: "Gas Sensor Value",
-        data: [],
-        borderWidth: 2,
-        tension: 0.3
+        label: "Gas Level (Smoothed)",
+        data: smoothGas,
+        borderColor: "#38bdf8",
+        borderWidth: 3,
+        tension: 0.4,
+        pointRadius: 2
       },
       {
         label: "Threshold (400)",
-        data: [],
-        borderDash: [8, 6],
-        borderWidth: 2,
-        pointRadius: 0
+        data: thresholdData,
+        borderColor: "#fb7185",
+        borderDash: [6, 6],
+        pointRadius: 0,
+        borderWidth: 2
       }
     ]
   },
@@ -123,50 +136,32 @@ const gasChart = new Chart(ctx, {
     animation: false,
     scales: {
       y: {
-        min: 200,
-        max: 600,
-        title: {
-          display: true,
-          text: "Gas Value"
-        }
+        suggestedMin: 180,
+        suggestedMax: 500,
+        title: { display: true, text: "Gas Value" }
       },
       x: {
-        title: {
-          display: true,
-          text: "Time"
-        }
+        title: { display: true, text: "Time" }
       }
     }
   }
 });
 
-/* ---------------- DATA UPDATE ---------------- */
 async function updateData() {
-  const res = await fetch("/data");
+  const res = await fetch("/data", { cache: "no-store" });
   const data = await res.json();
 
-  document.getElementById("gas").innerText = data.gas;
-  document.getElementById("state").innerText = data.state;
-  document.getElementById("time").innerText = data.time;
+  rawGas.push(data.gas);
+  const avg = movingAverage(rawGas, SMOOTH_WINDOW);
 
-  const card = document.getElementById("status");
+  labels.push(data.time);
+  smoothGas.push(avg);
+  thresholdData.push(GAS_THRESHOLD);
 
-  if (data.state === "ON") {
-    card.innerText = "🚨 GAS LEAK DETECTED";
-    card.className = "card danger";
-  } else {
-    card.innerText = "✅ GAS SAFE";
-    card.className = "card safe";
-  }
-
-  gasChart.data.labels.push(data.time);
-  gasChart.data.datasets[0].data.push(data.gas);
-  gasChart.data.datasets[1].data.push(GAS_THRESHOLD);
-
-  if (gasChart.data.labels.length > MAX_POINTS) {
-    gasChart.data.labels.shift();
-    gasChart.data.datasets[0].data.shift();
-    gasChart.data.datasets[1].data.shift();
+  if (labels.length > MAX_POINTS) {
+    labels.shift();
+    smoothGas.shift();
+    thresholdData.shift();
   }
 
   gasChart.update();
@@ -176,5 +171,7 @@ setInterval(updateData, 1000);
 updateData();
 </script>
 
+
 </body>
 </html>
+
