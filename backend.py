@@ -43,8 +43,13 @@ def send_email_alert(gas):
 
     try:
         sg = SendGridAPIClient(SENDGRID_API_KEY)
-        sg.send(message)
-        print("✅ EMAIL SENT SUCCESSFULLY")
+        response = sg.send(message)
+        print("📨 SendGrid status:", response.status_code)
+
+        if response.status_code != 202:
+            print("❌ SendGrid rejected the email")
+        else:
+            print("✅ SendGrid accepted the email")
     except Exception as e:
         print("❌ EMAIL FAILED:", e)
 
@@ -96,3 +101,4 @@ def force_email():
 # ================= START SERVER =================
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port)
+
