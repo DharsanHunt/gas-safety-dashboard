@@ -10,9 +10,9 @@ app = Flask(__name__)
 GAS_THRESHOLD = 400
 RESET_THRESHOLD = 350   # hysteresis (important)
 
-EMAIL_SENDER = "yourgmail@gmail.com"
-EMAIL_PASSWORD = "YOUR_NEW_APP_PASSWORD"
-EMAIL_RECEIVER = "receiver@gmail.com"
+EMAIL_SENDER = "dharsanudayakumar@gmail.com"
+EMAIL_PASSWORD = "ennieugnqtoemxsd"
+EMAIL_RECEIVER = "dharsanru@gmail.com"
 
 # ---------------- LIVE STATE ----------------
 latest_cloud_data = {
@@ -92,3 +92,4 @@ def update():
 # ---------------- START SERVER ----------------
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port)
+
