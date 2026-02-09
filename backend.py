@@ -1,114 +1,90 @@
-import serial
-import sqlite3
 from flask import Flask, jsonify, render_template, request
-from threading import Thread
 from datetime import datetime
 import os
-import requests
-
-# ---------- ENV DETECTION ----------
-IS_CLOUD = "PORT" in os.environ
-
-SERIAL_PORT = "COM8"
-BAUD_RATE = 9600
-CLOUD_URL = "https://gas-safety-dashboard.onrender.com/update"
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 
-# ---------- DATABASE ----------
-conn = sqlite3.connect("gas_data.db", check_same_thread=False)
-cur = conn.cursor()
+# ---------------- CONFIG ----------------
+GAS_THRESHOLD = 400   # change if needed
 
-cur.execute("""
-CREATE TABLE IF NOT EXISTS gas_log (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    gas INTEGER,
-    state TEXT,
-    time TEXT
-)
-""")
-conn.commit()
+# 🔴 CHANGE THESE
+EMAIL_SENDER = "dharsanudayakumar@gmail.com"
+EMAIL_PASSWORD = "kffl iocs diig znlj"
+EMAIL_RECEIVER = "dharsanfiitjee@gmail.com"
 
-# ---------- SERIAL READER ----------
-def read_serial():
+# ---------------- LIVE CLOUD STATE ----------------
+latest_cloud_data = {
+    "gas": 0,
+    "state": "OFF",
+    "time": ""
+}
+
+email_sent = False  # prevent spam
+
+# ---------------- EMAIL FUNCTION ----------------
+def send_email_alert(gas):
+    body = f"""
+🚨 GAS LEAK ALERT 🚨
+
+Gas concentration detected: {gas}
+Safe threshold exceeded: {GAS_THRESHOLD}
+
+Time: {datetime.now().strftime("%d-%m-%Y %H:%M:%S")}
+
+Please take immediate action!
+"""
+
+    msg = MIMEText(body)
+    msg["Subject"] = "🚨 Gas Leak Alert"
+    msg["From"] = EMAIL_SENDER
+    msg["To"] = EMAIL_RECEIVER
+
     try:
-        ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
-        print("✅ Connected to", SERIAL_PORT)
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        print("📧 Email alert sent!")
     except Exception as e:
-        print("❌ Serial error:", e)
-        return
+        print("❌ Email failed:", e)
 
-    while True:
-        line = ser.readline().decode(errors="ignore").strip()
-        if not line:
-            continue
-
-        print("RAW:", line)
-
-        if line.startswith("GAS="):
-            try:
-                parts = line.split(",")
-                gas = int(parts[0].split("=")[1])
-                state = parts[1].split("=")[1]
-                time_now = datetime.now().strftime("%H:%M:%S")
-
-                # Local DB
-                cur.execute(
-                    "INSERT INTO gas_log (gas, state, time) VALUES (?, ?, ?)",
-                    (gas, state, time_now)
-                )
-                conn.commit()
-
-                # 🔥 Push to cloud
-                requests.post(CLOUD_URL, json={
-                    "gas": gas,
-                    "state": state,
-                    "time": time_now
-                }, timeout=2)
-
-            except Exception as e:
-                print("❌ Parse error:", e)
-
-# ---------- ROUTES ----------
+# ---------------- ROUTES ----------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 @app.route("/data")
 def data():
-    cur.execute(
-        "SELECT gas, state, time FROM gas_log ORDER BY id DESC LIMIT 1"
-    )
-    row = cur.fetchone()
-
-    if row:
-        return jsonify({
-            "gas": row[0],
-            "state": row[1],
-            "time": row[2]
-        })
-    else:
-        return jsonify({
-            "gas": 0,
-            "state": "OFF",
-            "time": ""
-        })
+    return jsonify(latest_cloud_data)
 
 @app.route("/update", methods=["POST"])
 def update():
+    global email_sent
+
     data = request.json
-    cur.execute(
-        "INSERT INTO gas_log (gas, state, time) VALUES (?, ?, ?)",
-        (data["gas"], data["state"], data["time"])
-    )
-    conn.commit()
+    gas = int(data["gas"])
+    state = data["state"]
+    time = data["time"]
+
+    latest_cloud_data["gas"] = gas
+    latest_cloud_data["state"] = state
+    latest_cloud_data["time"] = time
+
+    print("☁️ Cloud updated:", latest_cloud_data)
+
+    # -------- EMAIL ALERT LOGIC --------
+    if gas > GAS_THRESHOLD and not email_sent:
+        send_email_alert(gas)
+        email_sent = True
+
+    if gas <= GAS_THRESHOLD:
+        email_sent = False
+
     return {"status": "ok"}
 
-# ---------- START ----------
-if not IS_CLOUD:
-    Thread(target=read_serial, daemon=True).start()
-else:
-    print("☁️ Cloud mode: Serial disabled")
-
+# ---------------- START SERVER ----------------
 port = int(os.environ.get("PORT", 5000))
 app.run(host="0.0.0.0", port=port)
