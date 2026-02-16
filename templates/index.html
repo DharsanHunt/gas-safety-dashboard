@@ -1,190 +1,594 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gas Safety Dashboard</title>
-
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #0f172a, #020617);
-      color: white;
-      text-align: center;
+    :root {
+      --primary: #7F56D9;
+      /* Purple */
+      --bg-light: #F9FAFB;
+      --white: #FFFFFF;
+      --text-dark: #1F2937;
+      --text-gray: #6B7280;
+      --sidebar-width: 250px;
+      --card-radius: 16px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      font-family: 'Inter', sans-serif;
     }
 
-    h1 {
-      margin: 24px 0;
-      font-size: 1.8rem;
+    body {
+      background-color: var(--bg-light);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      color: var(--text-dark);
     }
 
-    .card {
-      padding: 20px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 360px;
-      border-radius: 18px;
-      font-size: 1.2rem;
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      border-right: 1px solid #E5E7EB;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--text-dark);
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: #10B981;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: var(--text-gray);
+      text-decoration: none;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      transition: 0.2s;
+      font-weight: 500;
+    }
+
+    .menu-item.active,
+    .menu-item:hover {
+      background: #F3F4F6;
+      color: var(--primary);
+    }
+
+    .menu-item.active {
+      background: #F0FDF4;
+      /* Light green tint for active in design provided, sticking to general active style */
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    .register-btn {
+      background: var(--primary);
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      width: 100%;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    /* Top Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .search-bar {
+      background: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #E5E7EB;
+      width: 300px;
+      display: flex;
+      align-items: center;
+      color: var(--text-gray);
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #E5E7EB;
+    }
+
+    /* Cards Row */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 16px;
       transition: 0.3s;
     }
 
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .card-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .card-content p {
+      font-size: 0.875rem;
+      color: var(--text-gray);
+    }
+
+    /* Charts Layout */
+    .charts-section {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      height: 400px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .chart-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    /* Bottom Section */
+    .bottom-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 24px;
+    }
+
+    .info-card {
+      background: var(--white);
+      padding: 24px;
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      min-height: 250px;
+    }
+
+    /* Helper Classes for specific colors */
+    .bg-purple-light {
+      background: #F3E8FF;
+      color: #7F56D9;
+    }
+
+    .bg-blue-light {
+      background: #E0F2FE;
+      color: #0EA5E9;
+    }
+
+    .bg-orange-light {
+      background: #FFEDD5;
+      color: #F97316;
+    }
+
+    .bg-red-light {
+      background: #FEE2E2;
+      color: #EF4444;
+    }
+
+    /* Existing Script Mapping Styles */
+    /* Changes to statusCard are applied via JS as className 'card safe' or 'card danger'.
+           We need to override/adapt those styles so they don't break our layout but look good. */
+
+
+
     .safe {
-      background: #16a34a;
+      background-color: #DCFCE7 !important;
+      /* Green light */
+      color: #166534 !important;
+      /* Green dark */
+      border: 1px solid #166534;
     }
 
     .danger {
-      background: #dc2626;
-      animation: blink 1s infinite;
+      background-color: #FEE2E2 !important;
+      /* Red light */
+      color: #991B1B !important;
+      /* Red dark */
+      border: 1px solid #991B1B;
+      animation: pulse 2s infinite;
     }
 
-    @keyframes blink {
-      50% { opacity: 0.6; }
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+      }
+
+      70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
     }
 
-    .info {
-      font-size: 1rem;
-      margin-top: 6px;
-    }
+    /* Ensure specific IDs for data are styled */
 
-    .chart-container {
-      width: 95%;
-      max-width: 900px;
-      margin: 30px auto;
-    }
 
-    canvas {
-      width: 100% !important;
-      height: auto !important;
-    }
-
-    @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      .card { font-size: 1.05rem; }
+    .chart-wrapper {
+      position: relative;
+      height: 320px;
+      width: 100%;
     }
   </style>
 </head>
 
 <body>
 
-<h1>🔥 Gas Safety System</h1>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">GS</div>
+      <span>GasSafe</span>
+    </div>
 
-<div id="statusCard" class="card safe">Loading...</div>
+    <button class="register-btn">⚠️ Report Incident</button>
 
-<h2>Gas Value: <span id="gas">--</span></h2>
-<div class="info">Status: <span id="state">--</span></div>
-<div class="info">Last Update: <span id="time">--</span></div>
+    <nav>
+      <a href="#" class="menu-item active">
+        <span>�</span> Sensors
+      </a>
+      <a href="#" class="menu-item">
+        <span>📊</span> Overview
+      </a>
+      <a href="#" class="menu-item">
+        <span>📍</span> Zone Map
+      </a>
+      <a href="#" class="menu-item">
+        <span>�</span> Facilities
+      </a>
+      <a href="#" class="menu-item">
+        <span>👷</span> Technicians
+      </a>
+      <a href="#" class="menu-item">
+        <span>📝</span> Logs
+      </a>
+      <a href="#" class="menu-item" style="margin-top: 24px;">
+        <span>⚙️</span> Settings
+      </a>
+    </nav>
 
-<div class="chart-container">
-  <canvas id="gasChart"></canvas>
-</div>
+    <!-- Bottom Promo (static) -->
+    <div style="margin-top: auto; background: #F3E8FF; padding: 16px; border-radius: 12px;">
+      <p style="font-weight: 600; font-size: 0.9rem; color: #6B21A8;">Get mobile app</p>
+      <div style="display: flex; gap: 8px; margin-top: 8px;">
+        <div style="width: 24px; height: 24px; background: white; border-radius: 50%;"></div>
+        <div style="width: 24px; height: 24px; background: white; border-radius: 50%;"></div>
+      </div>
+    </div>
+  </div>
 
-<script>
-const GAS_THRESHOLD = 400;
-const MAX_POINTS = 30;
-const SMOOTH_WINDOW = 5;
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <div class="search-bar">
+        <span>🔍</span> <span style="margin-left: 8px;">Search...</span>
+      </div>
+      <div class="user-profile">
+        <span>🔔</span>
+        <div class="user-avatar"></div>
+        <span>Safety Officer ⌄</span>
+      </div>
+    </div>
 
-let labels = [];
-let rawGas = [];
-let smoothGas = [];
-let thresholdData = [];
+    <!-- Stats Cards -->
+    <div class="cards-grid">
+      <!-- Card 1: Gas Level -->
+      <div class="stat-card">
+        <div class="icon-box bg-purple-light">⛽</div>
+        <div class="card-content">
+          <h3><span id="gas">--</span></h3>
+          <p>Current Gas Level</p>
+        </div>
+      </div>
 
-function movingAverage(data, window) {
-  if (data.length < window) return data[data.length - 1];
-  const slice = data.slice(-window);
-  return Math.round(slice.reduce((a, b) => a + b, 0) / window);
-}
+      <!-- Card 2: Status State -->
+      <div class="stat-card">
+        <div class="icon-box bg-blue-light">📶</div>
+        <div class="card-content">
+          <h3><span id="state">--</span></h3>
+          <p>System State</p>
+        </div>
+      </div>
 
-const ctx = document.getElementById("gasChart").getContext("2d");
+      <!-- Card 3: Last Update -->
+      <div class="stat-card">
+        <div class="icon-box bg-orange-light">🕒</div>
+        <div class="card-content">
+          <h3 style="font-size: 1.2rem;"><span id="time">--</span></h3>
+          <p>Last Update</p>
+        </div>
+      </div>
 
-const gasChart = new Chart(ctx, {
-  type: "line",
-  data: {
-    labels: labels,
-    datasets: [
-      {
-        label: "Gas Level (Smoothed)",
-        data: smoothGas,
-        borderColor: "#38bdf8",
-        borderWidth: 3,
-        tension: 0.4,
-        pointRadius: 2
+      <!-- Card 4: Status Monitor (The dynamic statusCard) -->
+      <!-- Script will wipe innerText and replace class, so we use this container as the target -->
+      <div id="statusCard" class="stat-card safe"
+        style="justify-content: center; text-align: center; font-weight: bold;">
+        Loading...
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">Gas Safety Trend</div>
+          <div style="color: var(--text-gray); font-size: 0.9rem;">Show by months ⌄</div>
+        </div>
+        <div class="chart-wrapper">
+          <!-- Canvas ID must be gasChart -->
+          <canvas id="gasChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Static Right Widget -->
+      <div class="chart-card"
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="chart-title" style="align-self: flex-start; margin-bottom: 20px;">Sensor Status</div>
+        <!-- Simple CSS Ring -->
+        <div
+          style="width: 150px; height: 150px; border-radius: 50%; border: 12px solid #F3F4F6; border-top-color: #10B981; border-right-color: #EF4444; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center;">
+            <span style="font-size: 2rem; font-weight: bold;">📡</span>
+          </div>
+        </div>
+        <div style="margin-top: 24px; display: flex; gap: 16px; font-size: 0.9rem;">
+          <span style="color: #10B981;">● Active</span>
+          <span style="color: #EF4444;">● Faulty</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section -->
+    <div class="bottom-section">
+      <div class="info-card">
+        <div class="chart-header">
+          <div class="chart-title">Peak Gas Levels (ppm)</div>
+          <div style="font-size: 0.9rem; color: var(--text-gray);">Today ⌄</div>
+        </div>
+        <!-- Mock Waveform -->
+        <svg viewBox="0 0 100 30" width="100%" height="100px" style="overflow: visible;">
+          <path d="M0 25 Q 10 10, 20 25 T 40 25 T 60 15 T 80 25 T 100 20" fill="none" stroke="#F97316"
+            stroke-width="2" />
+          <circle cx="28" cy="18" r="2" fill="#F97316" />
+          <rect x="22" y="5" width="12" height="8" rx="2" fill="#1F2937" />
+          <text x="28" y="10" fill="white" font-size="4" text-anchor="middle">113</text>
+        </svg>
+        <div
+          style="display: flex; justify-content: space-between; margin-top: 10px; color: #9CA3AF; font-size: 0.8rem;">
+          <span>07 am</span><span>09 am</span><span>11 am</span><span>01 pm</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="chart-header">
+          <div class="chart-title">Readings by Zone</div>
+          <div style="font-size: 0.9rem; color: var(--text-gray);">⌄</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div
+            style="display: flex; justify-content: space-between; border-bottom: 1px solid #F3F4F6; padding-bottom: 8px;">
+            <span>� ZONE</span> <span>PPM</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; gap: 8px; align-items: center;">🧪 Lab A</span> <b>247</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; gap: 8px; align-items: center;">🏭 Factory Fl.</span> <b>164</b>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="display: flex; gap: 8px; align-items: center;">📦 Storage</span> <b>86</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card"
+        style="background: linear-gradient(135deg, #7F56D9, #6D28D9); color: white; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <h2 style="font-size: 2.5rem; margin-bottom: 4px;">28 Days</h2>
+          <p style="opacity: 0.8;">Safe Streak</p>
+        </div>
+        <!-- Simple white wave mockup -->
+        <svg viewBox="0 0 100 20" width="100%" height="60px" style="opacity: 0.5;">
+          <path d="M0 10 Q 20 0, 40 10 T 80 15 T 100 5 V 20 H 0 Z" fill="white" />
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const GAS_THRESHOLD = 400;
+    const MAX_POINTS = 30;
+    const SMOOTH_WINDOW = 5;
+
+    let labels = [];
+    let rawGas = [];
+    let smoothGas = [];
+    let thresholdData = [];
+
+    function movingAverage(data, window) {
+      if (data.length < window) return data[data.length - 1];
+      const slice = data.slice(-window);
+      return Math.round(slice.reduce((a, b) => a + b, 0) / window);
+    }
+
+    const ctx = document.getElementById("gasChart").getContext("2d");
+
+    const gasChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "Gas Level (Smoothed)",
+            data: smoothGas,
+            borderColor: "#38bdf8",
+            borderWidth: 3,
+            tension: 0.4,
+            pointRadius: 2
+          },
+          {
+            label: "Threshold (400)",
+            data: thresholdData,
+            borderColor: "#fb7185",
+            borderDash: [6, 6],
+            pointRadius: 0,
+            borderWidth: 2
+          }
+        ]
       },
-      {
-        label: "Threshold (400)",
-        data: thresholdData,
-        borderColor: "#fb7185",
-        borderDash: [6, 6],
-        pointRadius: 0,
-        borderWidth: 2
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        scales: {
+          y: {
+            suggestedMin: 180,
+            suggestedMax: 500,
+            title: { display: true, text: "Gas Value" }
+          },
+          x: {
+            title: { display: true, text: "Time" }
+          }
+        }
       }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: false,
-    scales: {
-      y: {
-        suggestedMin: 180,
-        suggestedMax: 500,
-        title: { display: true, text: "Gas Value" }
-      },
-      x: {
-        title: { display: true, text: "Time" }
+    });
+
+    async function updateData() {
+      try {
+        const res = await fetch("/data", { cache: "no-store" });
+        const data = await res.json();
+
+        // ✅ UPDATE TEXT VALUES (THIS FIXES YOUR ISSUE)
+        document.getElementById("gas").innerText = data.gas;
+        document.getElementById("state").innerText = data.state;
+        document.getElementById("time").innerText = data.time;
+
+        // ✅ STATUS CARD LOGIC
+        const card = document.getElementById("statusCard");
+        if (data.gas > GAS_THRESHOLD) {
+          card.className = "card danger";
+          card.innerText = "🚨 GAS LEAK DETECTED";
+        } else {
+          card.className = "card safe";
+          card.innerText = "✅ GAS SAFE";
+        }
+
+        // ---- GRAPH UPDATE ----
+        rawGas.push(data.gas);
+        const avg = movingAverage(rawGas, SMOOTH_WINDOW);
+
+        labels.push(data.time);
+        smoothGas.push(avg);
+        thresholdData.push(GAS_THRESHOLD);
+
+        if (labels.length > MAX_POINTS) {
+          labels.shift();
+          smoothGas.shift();
+          thresholdData.shift();
+        }
+
+        gasChart.update();
+
+      } catch (err) {
+        console.error("Update failed:", err);
       }
     }
-  }
-});
 
-async function updateData() {
-  try {
-    const res = await fetch("/data", { cache: "no-store" });
-    const data = await res.json();
-
-    // ✅ UPDATE TEXT VALUES (THIS FIXES YOUR ISSUE)
-    document.getElementById("gas").innerText = data.gas;
-    document.getElementById("state").innerText = data.state;
-    document.getElementById("time").innerText = data.time;
-
-    // ✅ STATUS CARD LOGIC
-    const card = document.getElementById("statusCard");
-    if (data.gas > GAS_THRESHOLD) {
-      card.className = "card danger";
-      card.innerText = "🚨 GAS LEAK DETECTED";
-    } else {
-      card.className = "card safe";
-      card.innerText = "✅ GAS SAFE";
-    }
-
-    // ---- GRAPH UPDATE ----
-    rawGas.push(data.gas);
-    const avg = movingAverage(rawGas, SMOOTH_WINDOW);
-
-    labels.push(data.time);
-    smoothGas.push(avg);
-    thresholdData.push(GAS_THRESHOLD);
-
-    if (labels.length > MAX_POINTS) {
-      labels.shift();
-      smoothGas.shift();
-      thresholdData.shift();
-    }
-
-    gasChart.update();
-
-  } catch (err) {
-    console.error("Update failed:", err);
-  }
-}
-
-setInterval(updateData, 1000);
-updateData();
-</script>
+    setInterval(updateData, 1000);
+    updateData();
+  </script>
 
 </body>
+
 </html>
