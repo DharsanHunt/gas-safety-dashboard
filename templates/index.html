@@ -9,78 +9,676 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #0f172a, #020617);
-      color: white;
-      text-align: center;
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+      color: #1a1a1a;
+      padding: 24px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    header {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
     }
 
     h1 {
-      margin: 24px 0;
-      font-size: 1.8rem;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #0a0a0a;
+      letter-spacing: -0.02em;
     }
 
-    .card {
-      padding: 20px;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 360px;
-      border-radius: 18px;
-      font-size: 1.2rem;
-      transition: 0.3s;
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: #737373;
+      font-weight: 500;
     }
 
-    .safe {
-      background: #16a34a;
+    .header-right {
+      display: flex;
+      gap: 12px;
+      align-items: center;
     }
 
-    .danger {
-      background: #dc2626;
-      animation: blink 1s infinite;
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f0fdf4;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #15803d;
     }
 
-    @keyframes blink {
-      50% { opacity: 0.6; }
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: connectionPulse 2s infinite;
     }
 
-    .info {
-      font-size: 1rem;
-      margin-top: 6px;
+    @keyframes connectionPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+      }
+    }
+
+    .refresh-btn {
+      padding: 8px 16px;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #525252;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refresh-btn:hover {
+      background: #f9fafb;
+      border-color: #d4d4d4;
+    }
+
+    /* Alert Banner */
+    .alert-banner {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .alert-banner::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      transition: all 0.3s;
+    }
+
+    .alert-banner.safe::before {
+      background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    .alert-banner.danger::before {
+      background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .alert-banner.danger {
+      animation: alertPulse 1.5s infinite;
+    }
+
+    @keyframes alertPulse {
+      0%, 100% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 0 rgba(239, 68, 68, 0.2);
+      }
+      50% {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 8px rgba(239, 68, 68, 0);
+      }
+    }
+
+    .alert-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+
+    .alert-banner.safe .alert-icon-wrapper {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
+    }
+
+    .alert-banner.danger .alert-icon-wrapper {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-content h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .alert-content p {
+      font-size: 0.9375rem;
+      color: #525252;
+    }
+
+    .alert-banner.safe h2 {
+      color: #15803d;
+    }
+
+    .alert-banner.danger h2 {
+      color: #b91c1c;
+    }
+
+    .alert-time {
+      font-size: 0.8125rem;
+      color: #737373;
+      padding: 6px 12px;
+      background: #f9fafb;
+      border-radius: 6px;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      transform: translate(30%, -30%);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: #737373;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.125rem;
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    }
+
+    .metric-value {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #0a0a0a;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .metric-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid #f5f5f5;
+    }
+
+    .metric-status {
+      font-size: 0.875rem;
+      color: #525252;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-safe {
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+    }
+
+    .status-danger {
+      background: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .metric-trend {
+      font-size: 0.8125rem;
+      color: #22c55e;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .metric-trend.negative {
+      color: #ef4444;
+    }
+
+    /* Statistics Panel */
+    .stats-panel {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .stats-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #0a0a0a;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.8125rem;
+      color: #737373;
+      font-weight: 500;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0a0a0a;
+    }
+
+    .stat-bar {
+      height: 4px;
+      background: #f5f5f5;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .stat-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+      transition: width 0.3s ease;
+    }
+
+    /* Chart Section */
+    .chart-section {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .chart-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .chart-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0a0a0a;
+    }
+
+    .chart-subtitle {
+      font-size: 0.875rem;
+      color: #737373;
+    }
+
+    .chart-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chart-btn {
+      padding: 8px 14px;
+      background: #f9fafb;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #525252;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chart-btn:hover {
+      background: #f3f4f6;
+      border-color: #d4d4d4;
+    }
+
+    .chart-btn.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
     }
 
     .chart-container {
-      width: 95%;
-      max-width: 900px;
-      margin: 30px auto;
+      position: relative;
+      height: 360px;
     }
 
     canvas {
       width: 100% !important;
-      height: auto !important;
+      height: 100% !important;
     }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 1.5rem; }
-      .card { font-size: 1.05rem; }
+    /* Footer */
+    .footer {
+      margin-top: 24px;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: #737373;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .metric-value {
+        font-size: 1.875rem;
+      }
+
+      .chart-container {
+        height: 280px;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<h1>🔥 Gas Safety System</h1>
+<div class="container">
+  <!-- Header -->
+  <header>
+    <div class="header-left">
+      <div class="header-icon">🛡️</div>
+      <div class="header-title">
+        <h1>Gas Safety Monitoring</h1>
+        <span class="header-subtitle">Real-time Environmental Monitoring System</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="connection-status">
+        <span class="connection-dot"></span>
+        <span>Live</span>
+      </div>
+      <button class="refresh-btn" onclick="updateData()">
+        <span>↻</span> Refresh
+      </button>
+    </div>
+  </header>
 
-<div id="statusCard" class="card safe">Loading...</div>
+  <!-- Alert Banner -->
+  <div id="alertBanner" class="alert-banner safe">
+    <div class="alert-icon-wrapper">
+      <span id="alertIcon">✓</span>
+    </div>
+    <div class="alert-content">
+      <h2 id="alertTitle">System Normal</h2>
+      <p id="alertMessage">All gas levels within safe parameters</p>
+    </div>
+    <div class="alert-time" id="alertTime">--</div>
+  </div>
 
-<h2>Gas Value: <span id="gas">--</span></h2>
-<div class="info">Status: <span id="state">--</span></div>
-<div class="info">Last Update: <span id="time">--</span></div>
+  <!-- Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label">Current Level</div>
+        <div class="metric-icon">📊</div>
+      </div>
+      <div class="metric-value"><span id="gas">--</span></div>
+      <div class="metric-footer">
+        <div class="metric-status">
+          <span id="statusIndicator" class="status-indicator status-safe"></span>
+          <span id="state">--</span>
+        </div>
+        <div class="metric-trend" id="trend">
+          <span>↑</span> 0%
+        </div>
+      </div>
+    </div>
 
-<div class="chart-container">
-  <canvas id="gasChart"></canvas>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label">Safety Threshold</div>
+        <div class="metric-icon">⚠️</div>
+      </div>
+      <div class="metric-value">400</div>
+      <div class="metric-footer">
+        <div class="metric-status">Maximum safe limit</div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label">Last Updated</div>
+        <div class="metric-icon">🕐</div>
+      </div>
+      <div class="metric-value" style="font-size: 1.375rem;" id="time">--</div>
+      <div class="metric-footer">
+        <div class="metric-status">Auto-refresh: 1s</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Panel -->
+  <div class="stats-panel">
+    <div class="stats-header">
+      <div class="stats-title">Session Statistics</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-label">Average Level</div>
+        <div class="stat-value" id="avgLevel">--</div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" id="avgBar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Peak Level</div>
+        <div class="stat-value" id="peakLevel">--</div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" id="peakBar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Minimum Level</div>
+        <div class="stat-value" id="minLevel">--</div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" id="minBar" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Data Points</div>
+        <div class="stat-value" id="dataPoints">0</div>
+        <div class="stat-bar">
+          <div class="stat-bar-fill" id="pointsBar" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chart Section -->
+  <div class="chart-section">
+    <div class="chart-header">
+      <div class="chart-title-group">
+        <div class="chart-title">Historical Trends</div>
+        <div class="chart-subtitle">Real-time gas level monitoring with threshold indicators</div>
+      </div>
+      <div class="chart-controls">
+        <button class="chart-btn active">Live</button>
+        <button class="chart-btn">30 Points</button>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="gasChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>🔒 Secure monitoring system • Last system check: <span id="systemCheck">--</span></p>
+  </div>
 </div>
 
 <script>
@@ -92,11 +690,60 @@ let labels = [];
 let rawGas = [];
 let smoothGas = [];
 let thresholdData = [];
+let previousGas = null;
+
+// Statistics tracking
+let stats = {
+  sum: 0,
+  count: 0,
+  peak: 0,
+  min: Infinity
+};
 
 function movingAverage(data, window) {
   if (data.length < window) return data[data.length - 1];
   const slice = data.slice(-window);
   return Math.round(slice.reduce((a, b) => a + b, 0) / window);
+}
+
+function updateStatistics(gasValue) {
+  stats.sum += gasValue;
+  stats.count++;
+  stats.peak = Math.max(stats.peak, gasValue);
+  stats.min = Math.min(stats.min, gasValue);
+
+  const avg = Math.round(stats.sum / stats.count);
+  
+  document.getElementById('avgLevel').innerText = avg;
+  document.getElementById('peakLevel').innerText = stats.peak;
+  document.getElementById('minLevel').innerText = stats.min;
+  document.getElementById('dataPoints').innerText = stats.count;
+
+  // Update progress bars
+  document.getElementById('avgBar').style.width = (avg / 500 * 100) + '%';
+  document.getElementById('peakBar').style.width = (stats.peak / 500 * 100) + '%';
+  document.getElementById('minBar').style.width = (stats.min / 500 * 100) + '%';
+  document.getElementById('pointsBar').style.width = (stats.count / MAX_POINTS * 100) + '%';
+}
+
+function updateTrend(current) {
+  if (previousGas !== null) {
+    const diff = current - previousGas;
+    const percent = previousGas !== 0 ? Math.abs(Math.round((diff / previousGas) * 100)) : 0;
+    const trendEl = document.getElementById('trend');
+    
+    if (diff > 0) {
+      trendEl.innerHTML = `<span>↑</span> ${percent}%`;
+      trendEl.className = 'metric-trend negative';
+    } else if (diff < 0) {
+      trendEl.innerHTML = `<span>↓</span> ${percent}%`;
+      trendEl.className = 'metric-trend';
+    } else {
+      trendEl.innerHTML = `<span>→</span> 0%`;
+      trendEl.className = 'metric-trend';
+    }
+  }
+  previousGas = current;
 }
 
 const ctx = document.getElementById("gasChart").getContext("2d");
@@ -107,35 +754,130 @@ const gasChart = new Chart(ctx, {
     labels: labels,
     datasets: [
       {
-        label: "Gas Level (Smoothed)",
+        label: "Gas Level",
         data: smoothGas,
-        borderColor: "#38bdf8",
+        borderColor: "#3b82f6",
+        backgroundColor: "rgba(59, 130, 246, 0.08)",
         borderWidth: 3,
         tension: 0.4,
-        pointRadius: 2
+        pointRadius: 4,
+        pointBackgroundColor: "#3b82f6",
+        pointBorderColor: "#fff",
+        pointBorderWidth: 2,
+        pointHoverRadius: 6,
+        fill: true
       },
       {
-        label: "Threshold (400)",
+        label: "Safety Threshold",
         data: thresholdData,
-        borderColor: "#fb7185",
-        borderDash: [6, 6],
+        borderColor: "#ef4444",
+        backgroundColor: "rgba(239, 68, 68, 0.05)",
+        borderDash: [8, 4],
         pointRadius: 0,
-        borderWidth: 2
+        borderWidth: 2,
+        fill: true
       }
     ]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
-    animation: false,
+    animation: {
+      duration: 750,
+      easing: 'easeInOutQuart'
+    },
+    interaction: {
+      mode: 'index',
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'top',
+        align: 'end',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 13,
+            weight: 600,
+            family: "'Inter', sans-serif"
+          },
+          color: '#525252'
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        padding: 14,
+        cornerRadius: 10,
+        titleFont: {
+          size: 14,
+          weight: 700
+        },
+        bodyFont: {
+          size: 13
+        },
+        bodySpacing: 6,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderWidth: 1
+      }
+    },
     scales: {
       y: {
         suggestedMin: 180,
         suggestedMax: 500,
-        title: { display: true, text: "Gas Value" }
+        grid: {
+          color: '#f5f5f5',
+          drawBorder: false,
+          lineWidth: 1
+        },
+        ticks: {
+          font: {
+            size: 12,
+            weight: 500,
+            family: "'Inter', sans-serif"
+          },
+          color: '#737373',
+          padding: 10
+        },
+        title: {
+          display: true,
+          text: 'Gas Value (ppm)',
+          font: {
+            size: 13,
+            weight: 700,
+            family: "'Inter', sans-serif"
+          },
+          color: '#525252',
+          padding: 16
+        }
       },
       x: {
-        title: { display: true, text: "Time" }
+        grid: {
+          display: false,
+          drawBorder: false
+        },
+        ticks: {
+          font: {
+            size: 11,
+            weight: 500,
+            family: "'Inter', sans-serif"
+          },
+          color: '#737373',
+          maxRotation: 0,
+          padding: 10
+        },
+        title: {
+          display: true,
+          text: 'Time',
+          font: {
+            size: 13,
+            weight: 700,
+            family: "'Inter', sans-serif"
+          },
+          color: '#525252',
+          padding: 16
+        }
       }
     }
   }
@@ -146,22 +888,39 @@ async function updateData() {
     const res = await fetch("/data", { cache: "no-store" });
     const data = await res.json();
 
-    // ✅ UPDATE TEXT VALUES (THIS FIXES YOUR ISSUE)
+    // Update text values
     document.getElementById("gas").innerText = data.gas;
     document.getElementById("state").innerText = data.state;
     document.getElementById("time").innerText = data.time;
+    document.getElementById("alertTime").innerText = data.time;
+    document.getElementById("systemCheck").innerText = data.time;
 
-    // ✅ STATUS CARD LOGIC
-    const card = document.getElementById("statusCard");
+    // Update statistics
+    updateStatistics(data.gas);
+    updateTrend(data.gas);
+
+    // Update status indicator and alert banner
+    const indicator = document.getElementById("statusIndicator");
+    const banner = document.getElementById("alertBanner");
+    const alertTitle = document.getElementById("alertTitle");
+    const alertMessage = document.getElementById("alertMessage");
+    const alertIcon = document.getElementById("alertIcon");
+
     if (data.gas > GAS_THRESHOLD) {
-      card.className = "card danger";
-      card.innerText = "🚨 GAS LEAK DETECTED";
+      indicator.className = "status-indicator status-danger";
+      banner.className = "alert-banner danger";
+      alertTitle.innerText = "⚠️ Gas Leak Detected";
+      alertMessage.innerText = "Immediate attention required - gas levels exceeding safe threshold";
+      alertIcon.innerText = "⚠️";
     } else {
-      card.className = "card safe";
-      card.innerText = "✅ GAS SAFE";
+      indicator.className = "status-indicator status-safe";
+      banner.className = "alert-banner safe";
+      alertTitle.innerText = "✓ System Normal";
+      alertMessage.innerText = "All gas levels within safe parameters";
+      alertIcon.innerText = "✓";
     }
 
-    // ---- GRAPH UPDATE ----
+    // Graph update
     rawGas.push(data.gas);
     const avg = movingAverage(rawGas, SMOOTH_WINDOW);
 
