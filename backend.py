@@ -7,8 +7,8 @@ app = Flask(__name__)
 
 # ================= CONFIG =================
 
-GAS_THRESHOLD = 400
-RESET_THRESHOLD = 350
+GAS_THRESHOLD = 2000
+RESET_THRESHOLD = 1800
 
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
@@ -142,3 +142,4 @@ def health():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
