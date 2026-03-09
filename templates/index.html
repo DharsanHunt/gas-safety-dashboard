@@ -65,35 +65,38 @@
 <body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
   <div class="layout-container flex h-full grow flex-col">
     <!-- Top Navigation -->
-    <header class="flex items-center justify-between border-b border-border-dark bg-surface-dark px-6 py-4 lg:px-20">
-      <div class="flex items-center gap-4">
+    <header
+      class="flex flex-col sm:flex-row items-center justify-between border-b border-border-dark bg-surface-dark px-4 py-4 lg:px-20 gap-4">
+      <div class="flex items-center gap-4 w-full sm:w-auto">
         <div class="text-primary">
-          <span class="material-symbols-outlined text-4xl">local_fire_department</span>
+          <span class="material-symbols-outlined text-3xl sm:text-4xl">local_fire_department</span>
         </div>
         <div>
-          <h2 class="text-lg font-bold leading-tight tracking-tight">Gas Safety Monitoring System</h2>
-          <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Real-time LPG Leak Detection</p>
+          <h2 class="text-base sm:text-lg font-bold leading-tight tracking-tight">Gas Safety Monitoring System</h2>
+          <p class="text-slate-400 text-[10px] sm:text-xs font-medium uppercase tracking-widest">Real-time LPG Leak
+            Detection</p>
         </div>
       </div>
-      <div class="flex items-center gap-6">
-        <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded bg-success/10 border border-success/20">
+      <div class="flex items-center justify-between sm:justify-end gap-4 sm:gap-6 w-full sm:w-auto">
+        <div class="flex items-center gap-2 px-3 py-1 rounded bg-success/10 border border-success/20">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
           </span>
-          <span class="text-success text-xs font-bold uppercase" id="system-status">System Online</span>
+          <span class="text-success text-[10px] sm:text-xs font-bold uppercase" id="system-status">System Online</span>
         </div>
         <div class="flex gap-2">
           <button
-            class="flex items-center justify-center rounded h-10 w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
-            <span class="material-symbols-outlined text-xl">notifications</span>
+            class="flex items-center justify-center rounded h-9 w-9 sm:h-10 sm:w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-lg sm:text-xl">notifications</span>
           </button>
           <button
-            class="flex items-center justify-center rounded h-10 w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
-            <span class="material-symbols-outlined text-xl">settings</span>
+            class="flex items-center justify-center rounded h-9 w-9 sm:h-10 sm:w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-lg sm:text-xl">settings</span>
           </button>
         </div>
-        <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-bold"
+        <div
+          class="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-primary flex items-center justify-center font-bold text-sm sm:text-base"
           data-alt="User profile avatar placeholder">
           AD
         </div>
@@ -102,7 +105,7 @@
     <main class="flex-1 overflow-y-auto p-4 lg:p-10 max-w-7xl mx-auto w-full space-y-6">
       <!-- Conditional Alert Banner -->
       <div
-        class="hidden animate-pulse flex items-center justify-between p-4 rounded-lg bg-danger border border-danger/50 text-white shadow-lg shadow-danger/20"
+        class="hidden animate-pulse flex flex-col sm:flex-row items-center justify-between p-4 rounded-lg bg-danger border border-danger/50 text-white shadow-lg shadow-danger/20 gap-4"
         id="alert-banner">
         <div class="flex items-center gap-4">
           <span class="material-symbols-outlined text-3xl">warning</span>
@@ -112,7 +115,8 @@
               immediately.</p>
           </div>
         </div>
-        <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded text-sm font-bold transition-colors"
+        <button
+          class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded text-sm font-bold transition-colors w-full sm:w-auto text-center"
           onclick="muteBuzzer()">
           Mute Buzzer
         </button>
@@ -121,35 +125,37 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Gas Level Display -->
         <div
-          class="lg:col-span-2 bg-surface-dark border border-border-dark p-6 rounded-xl flex flex-col justify-between">
+          class="lg:col-span-2 bg-surface-dark border border-border-dark p-4 sm:p-6 rounded-xl flex flex-col justify-between">
           <div class="flex justify-between items-start mb-4">
-            <h3 class="text-slate-400 font-bold uppercase text-xs tracking-wider">Current Gas Concentration</h3>
-            <span class="text-slate-500 text-xs" id="timestamp">Last Updated: Just now</span>
+            <h3 class="text-slate-400 font-bold uppercase text-[10px] sm:text-xs tracking-wider">Current Gas
+              Concentration</h3>
+            <span class="text-slate-500 text-[10px] sm:text-xs" id="timestamp">Last Updated: Just now</span>
           </div>
-          <div class="flex flex-col items-center py-8">
+          <div class="flex flex-col items-center py-4 sm:py-8">
             <div class="relative flex items-center justify-center">
               <!-- Circular Gauge Placeholder -->
-              <svg class="w-48 h-48 transform -rotate-90">
-                <circle class="text-slate-800" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor"
+              <svg class="w-40 h-40 sm:w-48 sm:h-48 transform -rotate-90" viewBox="0 0 160 160">
+                <circle class="text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor"
                   stroke-width="12"></circle>
-                <circle class="text-success transition-all duration-1000" cx="96" cy="96" fill="transparent"
-                  id="gauge-circle" r="80" stroke="currentColor" stroke-dasharray="502.4" stroke-dashoffset="502.4"
+                <circle class="text-success transition-all duration-1000" cx="80" cy="80" fill="transparent"
+                  id="gauge-circle" r="70" stroke="currentColor" stroke-dasharray="439.8" stroke-dashoffset="439.8"
                   stroke-width="12"></circle>
               </svg>
+              <!-- Responsive hidden circle for desktop size calculations if needed, but easier to just use JS to handle both -->
               <div class="absolute inset-0 flex flex-col items-center justify-center">
-                <span class="text-5xl font-black" id="gas-value">--</span>
-                <span class="text-slate-400 text-sm font-bold uppercase">ppm</span>
+                <span class="text-4xl sm:text-5xl font-black" id="gas-value">--</span>
+                <span class="text-slate-400 text-xs sm:text-sm font-bold uppercase">ppm</span>
               </div>
             </div>
             <div class="mt-6 flex gap-8">
               <div class="text-center">
-                <p class="text-slate-500 text-xs font-bold uppercase">Level Status</p>
-                <p class="text-success font-bold text-lg" id="gas-status-label">SAFE</p>
+                <p class="text-slate-500 text-[10px] sm:text-xs font-bold uppercase">Level Status</p>
+                <p class="text-success font-bold text-base sm:text-lg" id="gas-status-label">SAFE</p>
               </div>
               <div class="w-px h-10 bg-border-dark"></div>
               <div class="text-center">
-                <p class="text-slate-500 text-xs font-bold uppercase">Peak (24h)</p>
-                <p class="text-slate-100 font-bold text-lg" id="peak-value">--</p>
+                <p class="text-slate-500 text-[10px] sm:text-xs font-bold uppercase">Peak (24h)</p>
+                <p class="text-slate-100 font-bold text-base sm:text-lg" id="peak-value">--</p>
               </div>
             </div>
           </div>
@@ -297,7 +303,7 @@
 
       // Gauge Logic
       const circle = document.getElementById('gauge-circle');
-      const circumference = 2 * Math.PI * 80;
+      const circumference = 2 * Math.PI * 70; // Matching the new r=70
       const maxPpm = 3000;
       const offset = circumference - (Math.min(value, maxPpm) / maxPpm) * circumference;
       circle.style.strokeDashoffset = offset;
