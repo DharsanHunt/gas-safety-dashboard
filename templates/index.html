@@ -1,311 +1,391 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html class="dark" lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gas Safety Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Gas Safety Monitoring System - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+            "surface-dark": "#1a2632",
+            "border-dark": "#2d3a4b",
+            "danger": "#ef4444",
+            "warning": "#f59e0b",
+            "success": "#10b981",
+          },
+          fontFamily: {
+            "display": ["Space Grotesk"]
+          },
+          borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        },
+      },
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+    }
 
-<style>
-:root{
- --safe:#16a34a;
- --danger:#dc2626;
- --primary:#2563eb;
- --bg:#f4f6f9;
- --card:#ffffff;
- --text:#0f172a;
- --muted:#64748b;
-}
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
 
-*{box-sizing:border-box}
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
 
-body{
- margin:0;
- font-family:Inter,system-ui;
- background:var(--bg);
- padding:28px;
- color:var(--text);
-}
+    ::-webkit-scrollbar-track {
+      background: #101922;
+    }
 
-.container{max-width:1400px;margin:auto}
-
-header{
- background:var(--card);
- padding:22px 28px;
- border-radius:14px;
- box-shadow:0 6px 20px rgba(0,0,0,.04);
- margin-bottom:22px;
-}
-
-h1{font-size:1.6rem;font-weight:700}
-
-.alert-banner{
- background:var(--card);
- padding:20px 26px;
- border-radius:14px;
- margin-bottom:22px;
- display:flex;
- flex-direction:column;
- gap:6px;
- border-left:6px solid var(--safe);
- transition:.35s ease;
- box-shadow:0 6px 20px rgba(0,0,0,.04);
-}
-
-.alert-banner.danger{border-color:var(--danger)}
-
-.metrics-grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
- gap:18px;
- margin-bottom:22px;
-}
-
-.metric-card{
- background:var(--card);
- padding:22px;
- border-radius:14px;
- box-shadow:0 6px 20px rgba(0,0,0,.04);
- transition:.3s ease;
-}
-
-.metric-card:hover{
- transform:translateY(-3px);
-}
-
-.metric-value{
- font-size:2.1rem;
- font-weight:700;
- margin-bottom:6px;
-}
-
-.status{
- display:flex;
- align-items:center;
- gap:8px;
- color:var(--muted);
- font-size:.95rem;
-}
-
-.status-dot{
- width:10px;
- height:10px;
- border-radius:50%;
- background:var(--safe);
- transition:.3s;
-}
-
-.status-dot.danger{background:var(--danger)}
-
-.stats-panel{
- background:var(--card);
- padding:22px;
- border-radius:14px;
- margin-bottom:22px;
- box-shadow:0 6px 20px rgba(0,0,0,.04);
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
- gap:16px;
-}
-
-.stat{
- display:flex;
- flex-direction:column;
- gap:4px;
-}
-
-.stat span{color:var(--muted);font-size:.85rem}
-
-.chart-section{
- background:var(--card);
- padding:26px;
- border-radius:14px;
- box-shadow:0 6px 20px rgba(0,0,0,.04);
-}
-
-.chart-container{height:360px}
-
-.footer{
- margin-top:22px;
- background:var(--card);
- padding:16px;
- border-radius:14px;
- text-align:center;
- color:var(--muted);
- box-shadow:0 6px 20px rgba(0,0,0,.04);
-}
-
-/* Smooth number transition */
-.fade{
- animation:fadeUp .35s ease;
-}
-
-@keyframes fadeUp{
- from{opacity:0;transform:translateY(6px)}
- to{opacity:1;transform:translateY(0)}
-}
-</style>
+    ::-webkit-scrollbar-thumb {
+      background: #2d3a4b;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 
-<body>
-<div class="container">
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+  <div class="layout-container flex h-full grow flex-col">
+    <!-- Top Navigation -->
+    <header class="flex items-center justify-between border-b border-border-dark bg-surface-dark px-6 py-4 lg:px-20">
+      <div class="flex items-center gap-4">
+        <div class="text-primary">
+          <span class="material-symbols-outlined text-4xl">local_fire_department</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold leading-tight tracking-tight">Gas Safety Monitoring System</h2>
+          <p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Real-time LPG Leak Detection</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded bg-success/10 border border-success/20">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
+          </span>
+          <span class="text-success text-xs font-bold uppercase" id="system-status">System Online</span>
+        </div>
+        <div class="flex gap-2">
+          <button
+            class="flex items-center justify-center rounded h-10 w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-xl">notifications</span>
+          </button>
+          <button
+            class="flex items-center justify-center rounded h-10 w-10 bg-slate-800 hover:bg-slate-700 transition-colors">
+            <span class="material-symbols-outlined text-xl">settings</span>
+          </button>
+        </div>
+        <div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center font-bold"
+          data-alt="User profile avatar placeholder">
+          AD
+        </div>
+      </div>
+    </header>
+    <main class="flex-1 overflow-y-auto p-4 lg:p-10 max-w-7xl mx-auto w-full space-y-6">
+      <!-- Conditional Alert Banner -->
+      <div
+        class="hidden animate-pulse flex items-center justify-between p-4 rounded-lg bg-danger border border-danger/50 text-white shadow-lg shadow-danger/20"
+        id="alert-banner">
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-3xl">warning</span>
+          <div>
+            <h3 class="font-bold text-lg">🚨 Gas Leak Detected</h3>
+            <p class="text-sm opacity-90">High concentration of LPG detected. Initiate evacuation procedures
+              immediately.</p>
+          </div>
+        </div>
+        <button class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded text-sm font-bold transition-colors"
+          onclick="muteBuzzer()">
+          Mute Buzzer
+        </button>
+      </div>
+      <!-- Dashboard Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Gas Level Display -->
+        <div
+          class="lg:col-span-2 bg-surface-dark border border-border-dark p-6 rounded-xl flex flex-col justify-between">
+          <div class="flex justify-between items-start mb-4">
+            <h3 class="text-slate-400 font-bold uppercase text-xs tracking-wider">Current Gas Concentration</h3>
+            <span class="text-slate-500 text-xs" id="timestamp">Last Updated: Just now</span>
+          </div>
+          <div class="flex flex-col items-center py-8">
+            <div class="relative flex items-center justify-center">
+              <!-- Circular Gauge Placeholder -->
+              <svg class="w-48 h-48 transform -rotate-90">
+                <circle class="text-slate-800" cx="96" cy="96" fill="transparent" r="80" stroke="currentColor"
+                  stroke-width="12"></circle>
+                <circle class="text-success transition-all duration-1000" cx="96" cy="96" fill="transparent"
+                  id="gauge-circle" r="80" stroke="currentColor" stroke-dasharray="502.4" stroke-dashoffset="502.4"
+                  stroke-width="12"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-5xl font-black" id="gas-value">--</span>
+                <span class="text-slate-400 text-sm font-bold uppercase">ppm</span>
+              </div>
+            </div>
+            <div class="mt-6 flex gap-8">
+              <div class="text-center">
+                <p class="text-slate-500 text-xs font-bold uppercase">Level Status</p>
+                <p class="text-success font-bold text-lg" id="gas-status-label">SAFE</p>
+              </div>
+              <div class="w-px h-10 bg-border-dark"></div>
+              <div class="text-center">
+                <p class="text-slate-500 text-xs font-bold uppercase">Peak (24h)</p>
+                <p class="text-slate-100 font-bold text-lg" id="peak-value">--</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Side Panel: Status Cards -->
+        <div class="space-y-4">
+          <!-- Gas State Card -->
+          <div class="bg-surface-dark border border-border-dark p-5 rounded-xl flex items-center gap-4">
+            <div class="size-12 rounded-lg bg-success/20 flex items-center justify-center text-success"
+              id="state-icon-bg">
+              <span class="material-symbols-outlined" id="state-icon">check_circle</span>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs font-bold uppercase">Gas State</p>
+              <h4 class="text-xl font-bold" id="gas-state-text">Safe</h4>
+            </div>
+          </div>
+          <!-- Buzzer Status Card -->
+          <div class="bg-surface-dark border border-border-dark p-5 rounded-xl flex items-center gap-4">
+            <div class="size-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400"
+              id="buzzer-icon-bg">
+              <span class="material-symbols-outlined">volume_up</span>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs font-bold uppercase">Buzzer Status</p>
+              <h4 class="text-xl font-bold text-slate-400" id="buzzer-status-text">OFF</h4>
+            </div>
+          </div>
+          <!-- Device Status Card -->
+          <div class="bg-surface-dark border border-border-dark p-5 rounded-xl flex items-center gap-4">
+            <div class="size-12 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined">sensors</span>
+            </div>
+            <div>
+              <p class="text-slate-500 text-xs font-bold uppercase">Device Status</p>
+              <h4 class="text-xl font-bold">Node 01 - Online</h4>
+            </div>
+          </div>
+        </div>
+        <!-- History Graph -->
+        <div class="lg:col-span-2 bg-surface-dark border border-border-dark p-6 rounded-xl">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-slate-100 font-bold">Concentration History</h3>
+            <select class="bg-slate-800 border-none text-xs rounded px-2 py-1 text-slate-300">
+              <option>Last 1 Hour</option>
+              <option>Last 24 Hours</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="gasChart"></canvas>
+          </div>
+        </div>
+        <!-- Safety Instructions -->
+        <div class="bg-surface-dark border border-border-dark p-6 rounded-xl">
+          <h3 class="text-slate-100 font-bold mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-warning">emergency</span>
+            Emergency Procedures
+          </h3>
+          <ul class="space-y-4 text-sm text-slate-300">
+            <li class="flex gap-3">
+              <span
+                class="flex-shrink-0 size-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold">1</span>
+              <span>Do not operate electrical switches or create any sparks.</span>
+            </li>
+            <li class="flex gap-3">
+              <span
+                class="flex-shrink-0 size-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold">2</span>
+              <span>Open all windows and doors to maximize ventilation.</span>
+            </li>
+            <li class="flex gap-3">
+              <span
+                class="flex-shrink-0 size-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold">3</span>
+              <span>Shut off the main gas supply valve immediately.</span>
+            </li>
+            <li class="flex gap-3">
+              <span
+                class="flex-shrink-0 size-5 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-bold">4</span>
+              <span>Evacuate the premises and call emergency services.</span>
+            </li>
+          </ul>
+          <div class="mt-6 pt-6 border-t border-border-dark">
+            <button
+              class="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded font-bold transition-all flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined">map</span>
+              View Evacuation Map
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Footer Info -->
+    <footer class="p-6 border-t border-border-dark bg-surface-dark text-slate-500 text-xs text-center">
+      © 2024 Industrial Safety Solutions. Connected to Gas Node Protocol v2.4.1
+    </footer>
+  </div>
+  <script>
+    let peakValue = 0;
+    // Chart Initialization
+    const ctx = document.getElementById('gasChart').getContext('2d');
+    const gasChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array(20).fill(''),
+        datasets: [{
+          label: 'LPG Level (ppm)',
+          data: Array(20).fill(0),
+          borderColor: '#137fec',
+          backgroundColor: 'rgba(19, 127, 236, 0.1)',
+          fill: true,
+          tension: 0.4,
+          borderWidth: 2,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { display: false },
+          y: {
+            beginAtZero: true,
+            grid: { color: '#2d3a4b' },
+            ticks: { color: '#64748b' }
+          }
+        }
+      }
+    });
 
-<header>
-<h1>Gas Safety Monitoring</h1>
-</header>
+    // Polling Simulation Logic
+    function updateUI(data) {
+      const value = data.gas;
+      const state = data.state;
+      const buzzer = data.buzzer;
+      const time = data.time;
 
-<div id="alertBanner" class="alert-banner">
-<h2 id="alertTitle">System Normal</h2>
-<p id="alertMessage">All gas levels within safe range</p>
-</div>
+      if (value > peakValue) {
+        peakValue = value;
+        document.getElementById('peak-value').innerText = peakValue + ' ppm';
+      }
 
-<div class="metrics-grid">
+      // Update Text & Status
+      document.getElementById('gas-value').innerText = value;
+      document.getElementById('timestamp').innerText = `Last Updated: ${time}`;
 
-<div class="metric-card">
-<div class="metric-value" id="gas">--</div>
-<div class="status">
-<div id="statusDot" class="status-dot"></div>
-<span id="state">--</span>
-</div>
-</div>
+      // Gauge Logic
+      const circle = document.getElementById('gauge-circle');
+      const circumference = 2 * Math.PI * 80;
+      const maxPpm = 3000;
+      const offset = circumference - (Math.min(value, maxPpm) / maxPpm) * circumference;
+      circle.style.strokeDashoffset = offset;
 
-<div class="metric-card">
-<div class="metric-value">2000</div>
-<span>Safety Threshold (ppm)</span>
-</div>
+      // Color Logic
+      const alertBanner = document.getElementById('alert-banner');
+      const statusLabel = document.getElementById('gas-status-label');
+      const stateIconBg = document.getElementById('state-icon-bg');
+      const stateIcon = document.getElementById('state-icon');
+      const stateText = document.getElementById('gas-state-text');
 
-<div class="metric-card">
-<div class="metric-value" id="time">--</div>
-<span>Last Updated</span>
-</div>
+      if (value > 2000) {
+        circle.classList.remove('text-success', 'text-warning');
+        circle.classList.add('text-danger');
+        statusLabel.innerText = 'DANGER';
+        statusLabel.classList.replace('text-success', 'text-danger');
+        statusLabel.classList.replace('text-warning', 'text-danger');
+        alertBanner.classList.remove('hidden');
+        stateIconBg.className = 'size-12 rounded-lg bg-danger/20 flex items-center justify-center text-danger';
+        stateIcon.innerText = 'error';
+        stateText.innerText = 'Danger';
+      } else if (value > 1000) {
+        circle.classList.remove('text-success', 'text-danger');
+        circle.classList.add('text-warning');
+        statusLabel.innerText = 'WARNING';
+        statusLabel.classList.replace('text-success', 'text-warning');
+        statusLabel.classList.replace('text-danger', 'text-warning');
+        alertBanner.classList.add('hidden');
+        stateIconBg.className = 'size-12 rounded-lg bg-warning/20 flex items-center justify-center text-warning';
+        stateIcon.innerText = 'warning';
+        stateText.innerText = 'Warning';
+      } else {
+        circle.classList.remove('text-warning', 'text-danger');
+        circle.classList.add('text-success');
+        statusLabel.innerText = 'SAFE';
+        statusLabel.classList.replace('text-warning', 'text-success');
+        statusLabel.classList.replace('text-danger', 'text-success');
+        alertBanner.classList.add('hidden');
+        stateIconBg.className = 'size-12 rounded-lg bg-success/20 flex items-center justify-center text-success';
+        stateIcon.innerText = 'check_circle';
+        stateText.innerText = 'Safe';
+      }
 
-</div>
+      // Buzzer Status
+      const buzzerBg = document.getElementById('buzzer-icon-bg');
+      const buzzerText = document.getElementById('buzzer-status-text');
+      if (buzzer) {
+        buzzerBg.classList.replace('bg-slate-800', 'bg-danger/20');
+        buzzerBg.classList.replace('text-slate-400', 'text-danger');
+        buzzerText.innerText = 'ON';
+        buzzerText.classList.replace('text-slate-400', 'text-danger');
+      } else {
+        buzzerBg.className = 'size-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400';
+        buzzerText.innerText = 'OFF';
+        buzzerText.className = 'text-xl font-bold text-slate-400';
+      }
 
-<div class="stats-panel">
-<div class="stat"><strong id="avgLevel">--</strong><span>Average</span></div>
-<div class="stat"><strong id="peakLevel">--</strong><span>Peak</span></div>
-<div class="stat"><strong id="minLevel">--</strong><span>Minimum</span></div>
-<div class="stat"><strong id="dataPoints">0</strong><span>Samples</span></div>
-</div>
+      // Update Chart
+      gasChart.data.datasets[0].data.push(value);
+      gasChart.data.datasets[0].data.shift();
 
-<div class="chart-section">
-<div class="chart-container">
-<canvas id="gasChart"></canvas>
-</div>
-</div>
+      // Adjust line color based on value
+      if (value > 2000) gasChart.data.datasets[0].borderColor = '#ef4444';
+      else if (value > 1000) gasChart.data.datasets[0].borderColor = '#f59e0b';
+      else gasChart.data.datasets[0].borderColor = '#137fec';
 
-<div class="footer">Live Industrial Monitoring System</div>
+      gasChart.update('none');
+    }
 
-</div>
+    async function pollData() {
+      try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        updateUI(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    }
 
-<script>
-const GAS_THRESHOLD=2000
-const MAX_POINTS=30
-const SMOOTH_WINDOW=5
+    function muteBuzzer() {
+      console.log("Muting buzzer...");
+      // Optional: Implement fetch('/mute', { method: 'POST' }) if backend supports it
+    }
 
-let labels=[],rawGas=[],smoothGas=[],thresholdData=[]
-let stats={sum:0,count:0,peak:0,min:Infinity}
-
-function smooth(d,w){
- if(d.length<w) return d.at(-1)
- return Math.round(d.slice(-w).reduce((a,b)=>a+b)/w)
-}
-
-function animate(el){
- el.classList.remove("fade")
- void el.offsetWidth
- el.classList.add("fade")
-}
-
-function updateStats(v){
- stats.sum+=v
- stats.count++
- stats.peak=Math.max(stats.peak,v)
- stats.min=Math.min(stats.min,v)
-
- avgLevel.innerText=Math.round(stats.sum/stats.count)
- peakLevel.innerText=stats.peak
- minLevel.innerText=stats.min
- dataPoints.innerText=stats.count
-
- animate(avgLevel)
- animate(peakLevel)
- animate(minLevel)
-}
-
-const chart=new Chart(gasChart,{
- type:"line",
- data:{
-  labels,
-  datasets:[
-   {
-    label:"Gas Level",
-    data:smoothGas,
-    borderColor:"#2563eb",
-    backgroundColor:"rgba(37,99,235,.08)",
-    tension:.45,
-    fill:true,
-    pointRadius:3
-   },
-   {
-    label:"Threshold",
-    data:thresholdData,
-    borderColor:"#dc2626",
-    borderDash:[8,6],
-    pointRadius:0
-   }
-  ]
- },
- options:{
-  responsive:true,
-  maintainAspectRatio:false,
-  animation:{duration:600,easing:"easeOutQuart"},
-  scales:{
-   y:{min:600,max:2500}
-  }
- }
-})
-
-async function updateData(){
- const r=await fetch("/data",{cache:"no-store"})
- const d=await r.json()
-
- gas.innerText=d.gas
- time.innerText=d.time
- state.innerText=d.state
- animate(gas)
-
- updateStats(d.gas)
-
- if(d.gas>GAS_THRESHOLD){
-  alertBanner.classList.add("danger")
-  alertTitle.innerText="Gas Level Critical"
-  alertMessage.innerText="Immediate action required"
-  statusDot.classList.add("danger")
- }else{
-  alertBanner.classList.remove("danger")
-  alertTitle.innerText="System Normal"
-  alertMessage.innerText="All parameters safe"
-  statusDot.classList.remove("danger")
- }
-
- rawGas.push(d.gas)
- labels.push(d.time)
- smoothGas.push(smooth(rawGas,SMOOTH_WINDOW))
- thresholdData.push(GAS_THRESHOLD)
-
- if(labels.length>MAX_POINTS){
-  labels.shift()
-  smoothGas.shift()
-  thresholdData.shift()
- }
-
- chart.update()
-}
-
-setInterval(updateData,1000)
-updateData()
-</script>
-
+    // Initialize polling every 2 seconds
+    setInterval(pollData, 1000);
+    pollData(); // First run
+  </script>
 </body>
+
 </html>
