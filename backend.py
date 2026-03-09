@@ -27,6 +27,7 @@ latest_cloud_data = {
 }
 
 email_sent = False
+mute_requested = False
 
 # ================= EMAIL FUNCTION =================
 
@@ -81,7 +82,7 @@ def data():
 
 @app.route("/update", methods=["POST"])
 def update():
-    global email_sent
+    global email_sent, mute_requested
 
     try:
         data = request.get_json()
@@ -114,11 +115,24 @@ def update():
             print("✅ Gas normal → Reset email flag")
             email_sent = False
 
-        return jsonify({"status": "ok"})
+        response = {"status": "ok", "mute": mute_requested}
+        if mute_requested:
+            mute_requested = False  # Reset after sending to ESP32
+        return jsonify(response)
 
     except Exception as e:
         print("❌ Update error:", e)
         return jsonify({"error": str(e)}), 400
+
+
+# -------- MUTE BUZZER ROUTE --------
+
+@app.route("/mute", methods=["POST"])
+def mute():
+    global mute_requested
+    mute_requested = True
+    print("🔇 MUTE REQUESTED from dashboard")
+    return jsonify({"status": "mute_sent"})
 
 
 # -------- FORCE TEST ROUTE --------

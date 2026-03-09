@@ -383,9 +383,14 @@
       }
     }
 
-    function muteBuzzer() {
-      console.log("Muting buzzer...");
-      // Optional: Implement fetch('/mute', { method: 'POST' }) if backend supports it
+    async function muteBuzzer() {
+      try {
+        const response = await fetch('/mute', { method: 'POST' });
+        const data = await response.json();
+        console.log("Buzzer mute command sent:", data);
+      } catch (error) {
+        console.error("Failed to mute buzzer:", error);
+      }
     }
 
     // Initialize polling every 2 seconds

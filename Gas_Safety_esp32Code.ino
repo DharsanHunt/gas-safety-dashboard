@@ -19,19 +19,20 @@ const char* serverName = "https://gas-safety-dashboard.onrender.com/update";
 int GAS_THRESHOLD = 2000;
 int RESET_THRESHOLD = 1800;
 
-const unsigned long GAS_ON_TIME  = 8000;   // 5 sec above threshold
-const unsigned long GAS_OFF_TIME = 60000;  // 10 sec below threshold
-const unsigned long BUZZER_DURATION = 5000;
+const unsigned long GAS_ON_TIME  = 8000;   // 8 sec above threshold to activate
+const unsigned long GAS_OFF_TIME = 60000;  // 60 sec below threshold to reset system
+const unsigned long BUZZER_OFF_DELAY = 5000; // 5 sec below threshold to stop buzzer
 
 Servo gasServo;
 
 /* ================= STATE ================= */
 bool systemActive = false;
 bool buzzerActive = false;
+bool buzzerMuted = false;   // Muted via cloud dashboard
 
 unsigned long aboveStartTime = 0;
 unsigned long belowStartTime = 0;
-unsigned long buzzerStartTime = 0;
+unsigned long buzzerBelowStart = 0;  // Tracks when gas went below for buzzer off
 unsigned long lastSendTime = 0;
 
 /* ================= WIFI ================= */
@@ -61,6 +62,18 @@ void sendToCloud(int gasValue) {
     int httpResponseCode = http.POST(jsonData);
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
+
+    // Check if server sent a mute command
+    if (httpResponseCode == 200) {
+      String response = http.getString();
+      if (response.indexOf("\"mute\":true") >= 0) {
+        digitalWrite(BUZZER_PIN, LOW);
+        buzzerActive = false;
+        buzzerMuted = true;
+        Serial.println(">>> Buzzer MUTED via cloud dashboard");
+      }
+    }
+
     http.end();
   }
 }
@@ -92,6 +105,8 @@ void loop() {
 
   /* ===== GAS ABOVE THRESHOLD ===== */
   if (gasValue > GAS_THRESHOLD) {
+    buzzerBelowStart = 0;  // Reset buzzer-off timer
+
     if (aboveStartTime == 0)
       aboveStartTime = currentTime;
 
@@ -99,20 +114,41 @@ void loop() {
       gasServo.write(90);
 
       // RELAY ON (Active Low Logic)
-      digitalWrite(RELAY_PIN, LOW);  
-      
-      // BUZZER ON (Active High Logic)
-      digitalWrite(BUZZER_PIN, HIGH);
+      digitalWrite(RELAY_PIN, LOW);
 
-      buzzerStartTime = currentTime;
+      // BUZZER ON + reset mute (new alarm = new mute cycle)
+      buzzerMuted = false;
+      digitalWrite(BUZZER_PIN, HIGH);
       buzzerActive = true;
+
       systemActive = true;
       Serial.println("--- ALERT: SYSTEM ACTIVE ---");
+    }
+
+    // Keep buzzer ringing continuously while above threshold (unless muted)
+    if (systemActive && !buzzerMuted) {
+      digitalWrite(BUZZER_PIN, HIGH);
+      buzzerActive = true;
     }
   }
   else {
     aboveStartTime = 0;
 
+    /* ===== BUZZER OFF after 5 sec below threshold ===== */
+    if (buzzerActive) {
+      if (buzzerBelowStart == 0)
+        buzzerBelowStart = currentTime;
+
+      if (currentTime - buzzerBelowStart >= BUZZER_OFF_DELAY) {
+        digitalWrite(BUZZER_PIN, LOW);
+        buzzerActive = false;
+        buzzerMuted = false;  // Reset mute for next activation
+        buzzerBelowStart = 0;
+        Serial.println("Buzzer OFF (5s below threshold)");
+      }
+    }
+
+    /* ===== SYSTEM RESET after 60 sec below threshold ===== */
     if (systemActive) {
       if (belowStartTime == 0)
         belowStartTime = currentTime;
@@ -121,23 +157,17 @@ void loop() {
         gasServo.write(0);
 
         // RELAY OFF (Active Low Logic)
-        digitalWrite(RELAY_PIN, HIGH); 
-        
-        // BUZZER OFF
+        digitalWrite(RELAY_PIN, HIGH);
+
+        // Ensure buzzer is also off
         digitalWrite(BUZZER_PIN, LOW);
+        buzzerActive = false;
 
         systemActive = false;
         belowStartTime = 0;
         Serial.println("--- SAFE: SYSTEM RESET ---");
       }
     }
-  }
-
-  /* ===== BUZZER AUTO OFF ===== */
-  if (buzzerActive && (currentTime - buzzerStartTime >= BUZZER_DURATION)) {
-    digitalWrite(BUZZER_PIN, LOW);
-    buzzerActive = false;
-    Serial.println("Buzzer timed out (Auto-OFF)");
   }
 
   /* ===== SEND DATA ===== */
