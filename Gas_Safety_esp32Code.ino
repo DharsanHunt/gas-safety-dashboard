@@ -54,7 +54,8 @@ void sendToCloud(int gasValue) {
 
     String jsonData = "{";
     jsonData += "\"gas\":" + String(gasValue) + ",";
-    jsonData += "\"state\":\"" + String(systemActive ? "ACTIVE" : "SAFE") + "\"";
+    jsonData += "\"state\":\"" + String(systemActive ? "ACTIVE" : "SAFE") + "\",";
+    jsonData += "\"buzzer\":" + String(buzzerActive ? "true" : "false");
     jsonData += "}";
 
     int httpResponseCode = http.POST(jsonData);
