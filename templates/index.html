@@ -226,7 +226,6 @@
     function initChart(labels, dataPoints) {
       const canvas = document.getElementById('gasChart');
       const ctx = canvas.getContext('2d');
-      if (gasChart) gasChart.destroy();
 
       const gradient = ctx.createLinearGradient(0, 0, 0, 220);
       gradient.addColorStop(0, 'rgba(19, 127, 236, 0.25)');
@@ -234,6 +233,8 @@
 
       const maxVal = Math.max(...dataPoints, 3000);
       const yMax = Math.ceil(maxVal / 1000) * 1000;
+
+      if (gasChart) gasChart.destroy();
 
       gasChart = new Chart(ctx, {
         type: 'line',
@@ -247,7 +248,7 @@
               fill: true,
               tension: 0.3,
               borderWidth: 2,
-              pointRadius: dataPoints.length > 200 ? 0 : 2,
+              pointRadius: 0,
               pointHoverRadius: 4,
             },
             {
@@ -278,20 +279,14 @@
             tooltip: {
               filter: item => item.datasetIndex === 0,
               callbacks: {
-                label: ctx => `${ctx.parsed.y} ppm`,
-                title: ctx => ctx[0].label
+                label: c => `${c.parsed.y} ppm`,
+                title: c => c[0].label
               }
             }
           },
           scales: {
             x: {
-              ticks: {
-                color: '#64748b',
-                font: { size: 10 },
-                maxRotation: 30,
-                autoSkip: true,
-                maxTicksLimit: 15
-              },
+              ticks: { color: '#64748b', font: { size: 10 }, maxRotation: 30, autoSkip: true, maxTicksLimit: 15 },
               grid: { color: 'rgba(45,58,75,0.6)' }
             },
             y: {
@@ -308,35 +303,45 @@
           }
         }
       });
-
-      setTimeout(() => {
-        const s = document.getElementById('chart-scroll');
-        s.scrollLeft = s.scrollWidth;
-      }, 50);
     }
 
-
     // ===================== LOAD HISTORY =====================
+    let lastRowCount = 0;
+
     async function loadHistory() {
       try {
         const res = await fetch('/history?limit=10000');
         const rows = await res.json();
-
         if (!rows.length) return;
 
         const sorted = rows.slice().reverse();
+
+        // Only rebuild chart if new data arrived
+        if (sorted.length === lastRowCount) return;
+        lastRowCount = sorted.length;
+
         const labels = sorted.map(r => r.timestamp.split(' ')[1] || r.timestamp);
         const dataPoints = sorted.map(r => r.gas);
 
         const chartInner = document.getElementById('chart-inner');
         const wrapper = chartInner.parentElement;
         const canvasWidth = Math.max(wrapper.clientWidth, sorted.length * POINT_WIDTH);
+
+        // Remember scroll position — only auto-scroll on first load
+        const scrollEl = document.getElementById('chart-scroll');
+        const wasAtEnd = scrollEl.scrollLeft >= scrollEl.scrollWidth - scrollEl.clientWidth - 50;
+
         chartInner.style.width = canvasWidth + 'px';
         document.getElementById('gasChart').style.width = canvasWidth + 'px';
         document.getElementById('gasChart').style.height = '220px';
 
         initChart(labels, dataPoints);
         document.getElementById('chart-count').innerText = `${sorted.length} readings`;
+
+        // Only scroll to end if user was already at the end (or first load)
+        if (wasAtEnd || lastRowCount <= sorted.length) {
+          setTimeout(() => { scrollEl.scrollLeft = scrollEl.scrollWidth; }, 50);
+        }
 
       } catch (e) {
         console.error('Failed to load history:', e);
