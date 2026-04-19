@@ -48,9 +48,12 @@
     .chart-scroll-wrapper::-webkit-scrollbar-track { background: #1a2632; border-radius: 10px; }
     .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
     .chart-inner {
-      height: 300px;
+      height: 260px;
       min-width: 100%;
       position: relative;
+    }
+    #gasChart {
+      height: 260px !important;
     }
   </style>
 </head>
@@ -249,7 +252,7 @@
       if (gasChart) gasChart.destroy();
 
       // Gradient fill under the line
-      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      const gradient = ctx.createLinearGradient(0, 0, 0, 260);
       gradient.addColorStop(0, 'rgba(19, 127, 236, 0.3)');
       gradient.addColorStop(1, 'rgba(19, 127, 236, 0.01)');
 
@@ -325,7 +328,12 @@
               min: 0,
               max: 5000,
               grid: { color: '#2d3a4b' },
-              ticks: { color: '#64748b', stepSize: 1000 }
+              ticks: {
+                color: '#64748b',
+                font: { size: 10 },
+                stepSize: 1000,
+                callback: val => val >= 1000 ? (val/1000) + 'k' : val
+              }
             }
           }
         }
