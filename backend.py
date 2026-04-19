@@ -16,7 +16,7 @@ BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
 EMAIL_SENDER = os.environ.get("EMAIL_SENDER")
 EMAIL_RECEIVER = os.environ.get("EMAIL_RECEIVER")
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = os.environ.get("DATABASE_URL")  # Set this in Render environment variables
 
 if not BREVO_API_KEY:
     print("⚠ WARNING: BREVO_API_KEY not set")
@@ -128,7 +128,7 @@ def get_stats():
         print("❌ DB Stats Error:", e)
         return {}
 
-# ================= STATE =================
+# ================= STATE (in-memory for latest) =================
 
 latest_cloud_data = {
     "gas": 0,
@@ -140,7 +140,7 @@ latest_cloud_data = {
 email_sent = False
 mute_requested = False
 
-# ================= EMAIL =================
+# ================= EMAIL FUNCTION =================
 
 def send_email_alert(gas):
     try:
@@ -214,7 +214,7 @@ def update():
 
 @app.route("/history")
 def history():
-    limit = request.args.get("limit", 50, type=int)
+    limit = request.args.get("limit", 10000, type=int)
     readings = get_latest_readings(limit)
     return jsonify(readings)
 
