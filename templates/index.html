@@ -236,40 +236,76 @@
     const MIN_POINT_WIDTH = 18; // px per data point for scrollable chart
 
     // ===================== CHART INIT =====================
-    function initChart(labels, dataPoints, colors) {
+    function initChart(labels, dataPoints) {
       const ctx = document.getElementById('gasChart').getContext('2d');
       if (gasChart) gasChart.destroy();
+
+      // Gradient fill under the line
+      const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      gradient.addColorStop(0, 'rgba(19, 127, 236, 0.3)');
+      gradient.addColorStop(1, 'rgba(19, 127, 236, 0.01)');
+
       gasChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
-          datasets: [{
-            label: 'LPG Level (ppm)',
-            data: dataPoints,
-            borderColor: colors,
-            backgroundColor: 'rgba(19, 127, 236, 0.08)',
-            fill: true,
-            tension: 0.4,
-            borderWidth: 2,
-            pointRadius: 3,
-            pointHoverRadius: 5,
-            pointBackgroundColor: colors,
-            segment: {
-              borderColor: ctx => segmentColor(ctx.p1.parsed.y)
+          datasets: [
+            {
+              label: 'LPG Level (ppm)',
+              data: dataPoints,
+              borderColor: '#137fec',
+              backgroundColor: gradient,
+              fill: true,
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: 2,
+              pointHoverRadius: 5,
+              pointBackgroundColor: '#137fec',
+            },
+            // Danger threshold line
+            {
+              label: 'Danger (2000)',
+              data: Array(dataPoints.length).fill(2000),
+              borderColor: 'rgba(239,68,68,0.5)',
+              borderWidth: 1,
+              borderDash: [6, 4],
+              pointRadius: 0,
+              fill: false,
+              tension: 0,
+            },
+            // Warning threshold line
+            {
+              label: 'Warning (1000)',
+              data: Array(dataPoints.length).fill(1000),
+              borderColor: 'rgba(245,158,11,0.5)',
+              borderWidth: 1,
+              borderDash: [6, 4],
+              pointRadius: 0,
+              fill: false,
+              tension: 0,
             }
-          }]
+          ]
         },
         options: {
-          responsive: false, // We handle sizing manually for scroll
+          responsive: false,
           maintainAspectRatio: false,
           animation: false,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              labels: {
+                color: '#64748b',
+                font: { size: 11 },
+                boxWidth: 20,
+                filter: item => item.datasetIndex !== 0 // only show threshold labels
+              }
+            },
             tooltip: {
               callbacks: {
-                label: ctx => `Gas: ${ctx.parsed.y} ppm`,
+                label: ctx => ctx.datasetIndex === 0 ? `Gas: ${ctx.parsed.y} ppm` : null,
                 title: ctx => ctx[0].label
-              }
+              },
+              filter: item => item.datasetIndex === 0
             }
           },
           scales: {
@@ -288,12 +324,6 @@
       });
     }
 
-    function segmentColor(y) {
-      if (y > 2000) return '#ef4444';
-      if (y > 1000) return '#f59e0b';
-      return '#137fec';
-    }
-
     // ===================== LOAD HISTORY =====================
     async function loadHistory() {
       const limit = document.getElementById('history-limit').value;
@@ -308,7 +338,6 @@
 
         const labels = sorted.map(r => r.timestamp);
         const dataPoints = sorted.map(r => r.gas);
-        const colors = dataPoints.map(v => segmentColor(v));
 
         // Set canvas width so all points are visible and scrollable
         const chartInner = document.getElementById('chart-inner');
@@ -316,7 +345,7 @@
         chartInner.style.width = canvasWidth + 'px';
         document.getElementById('gasChart').style.width = canvasWidth + 'px';
 
-        initChart(labels, dataPoints, colors);
+        initChart(labels, dataPoints);
 
         document.getElementById('chart-count').innerText = `${sorted.length} readings`;
 
