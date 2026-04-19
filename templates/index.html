@@ -37,17 +37,20 @@
 
     /* Scrollable chart wrapper */
     .chart-scroll-wrapper {
-      overflow-x: auto;
+      overflow-x: scroll;
       overflow-y: hidden;
       width: 100%;
       cursor: grab;
+      -webkit-overflow-scrolling: touch;
     }
     .chart-scroll-wrapper:active { cursor: grabbing; }
-    .chart-scroll-wrapper::-webkit-scrollbar { height: 6px; }
-    .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #2d3a4b; border-radius: 10px; }
+    .chart-scroll-wrapper::-webkit-scrollbar { height: 8px; }
+    .chart-scroll-wrapper::-webkit-scrollbar-track { background: #1a2632; border-radius: 10px; }
+    .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
     .chart-inner {
       height: 300px;
       min-width: 100%;
+      position: relative;
     }
   </style>
 </head>
@@ -329,18 +332,37 @@
     // Reload history when dropdown changes
     document.getElementById('history-limit').addEventListener('change', loadHistory);
 
-    // Drag-to-scroll on chart
+    // Drag-to-scroll on chart (mouse)
     const scrollEl = document.getElementById('chart-scroll');
     let isDown = false, startX, scrollLeftStart;
-    scrollEl.addEventListener('mousedown', e => { isDown = true; startX = e.pageX - scrollEl.offsetLeft; scrollLeftStart = scrollEl.scrollLeft; });
-    scrollEl.addEventListener('mouseleave', () => isDown = false);
-    scrollEl.addEventListener('mouseup', () => isDown = false);
-    scrollEl.addEventListener('mousemove', e => {
-      if (!isDown) return;
+
+    scrollEl.addEventListener('mousedown', e => {
+      isDown = true;
+      startX = e.pageX;
+      scrollLeftStart = scrollEl.scrollLeft;
+      scrollEl.style.cursor = 'grabbing';
       e.preventDefault();
-      const x = e.pageX - scrollEl.offsetLeft;
-      scrollEl.scrollLeft = scrollLeftStart - (x - startX);
     });
+    document.addEventListener('mouseup', () => {
+      isDown = false;
+      scrollEl.style.cursor = 'grab';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!isDown) return;
+      const dx = e.pageX - startX;
+      scrollEl.scrollLeft = scrollLeftStart - dx;
+    });
+
+    // Touch support (mobile)
+    let touchStartX = 0, touchScrollLeft = 0;
+    scrollEl.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].pageX;
+      touchScrollLeft = scrollEl.scrollLeft;
+    }, { passive: true });
+    scrollEl.addEventListener('touchmove', e => {
+      const dx = e.touches[0].pageX - touchStartX;
+      scrollEl.scrollLeft = touchScrollLeft - dx;
+    }, { passive: true });
 
     // ===================== LIVE DATA POLL =====================
     function updateUI(data) {
