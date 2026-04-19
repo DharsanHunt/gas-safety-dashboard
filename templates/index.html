@@ -37,23 +37,24 @@
 
     /* Scrollable chart wrapper */
     .chart-scroll-wrapper {
-      overflow-x: scroll;
+      overflow-x: auto;
       overflow-y: hidden;
       width: 100%;
       cursor: grab;
       -webkit-overflow-scrolling: touch;
+      border-radius: 4px;
     }
     .chart-scroll-wrapper:active { cursor: grabbing; }
-    .chart-scroll-wrapper::-webkit-scrollbar { height: 8px; }
-    .chart-scroll-wrapper::-webkit-scrollbar-track { background: #1a2632; border-radius: 10px; }
-    .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
+    .chart-scroll-wrapper::-webkit-scrollbar { height: 6px; }
+    .chart-scroll-wrapper::-webkit-scrollbar-track { background: #101922; border-radius: 10px; }
+    .chart-scroll-wrapper::-webkit-scrollbar-thumb { background: #2d3a4b; border-radius: 10px; }
     .chart-inner {
-      height: 260px;
+      height: 220px;
       min-width: 100%;
       position: relative;
     }
     #gasChart {
-      height: 260px !important;
+      display: block;
     }
   </style>
 </head>
@@ -174,20 +175,7 @@
         <div class="lg:col-span-2 bg-surface-dark border border-border-dark p-6 rounded-xl">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-slate-100 font-bold">Concentration History</h3>
-            <div class="flex items-center gap-3">
-              <span class="text-slate-500 text-xs" id="chart-count">-- readings</span>
-              <div class="flex items-center gap-1">
-                <button onclick="zoomChart('in')" class="flex items-center justify-center w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Zoom In">
-                  <span class="material-symbols-outlined text-base">zoom_in</span>
-                </button>
-                <button onclick="zoomChart('out')" class="flex items-center justify-center w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Zoom Out">
-                  <span class="material-symbols-outlined text-base">zoom_out</span>
-                </button>
-                <button onclick="zoomChart('reset')" class="flex items-center justify-center w-7 h-7 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors" title="Reset Zoom">
-                  <span class="material-symbols-outlined text-base">fit_screen</span>
-                </button>
-              </div>
-            </div>
+            <span class="text-slate-500 text-xs" id="chart-count">-- readings</span>
           </div>
           <div class="chart-scroll-wrapper" id="chart-scroll">
             <div class="chart-inner" id="chart-inner">
@@ -238,62 +226,53 @@
   <script>
     let peakValue = 0;
     let gasChart = null;
+    const POINT_WIDTH = 14;
 
-    let pointWidth = 18; // px per data point — zoom changes this
-    let currentLabels = [];
-    let currentData = [];
+
 
     // ===================== CHART INIT =====================
     function initChart(labels, dataPoints) {
-      currentLabels = labels;
-      currentData = dataPoints;
-
-      const ctx = document.getElementById('gasChart').getContext('2d');
+      const canvas = document.getElementById('gasChart');
+      const ctx = canvas.getContext('2d');
       if (gasChart) gasChart.destroy();
 
-      // Gradient fill under the line
-      const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-      gradient.addColorStop(0, 'rgba(19, 127, 236, 0.3)');
-      gradient.addColorStop(1, 'rgba(19, 127, 236, 0.01)');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+      gradient.addColorStop(0, 'rgba(19, 127, 236, 0.25)');
+      gradient.addColorStop(1, 'rgba(19, 127, 236, 0.0)');
+
+      const maxVal = Math.max(...dataPoints, 3000);
+      const yMax = Math.ceil(maxVal / 1000) * 1000;
 
       gasChart = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: labels,
+          labels,
           datasets: [
             {
-              label: 'LPG Level (ppm)',
               data: dataPoints,
               borderColor: '#137fec',
               backgroundColor: gradient,
               fill: true,
               tension: 0.3,
               borderWidth: 2,
-              pointRadius: 2,
-              pointHoverRadius: 5,
-              pointBackgroundColor: '#137fec',
+              pointRadius: dataPoints.length > 200 ? 0 : 2,
+              pointHoverRadius: 4,
             },
-            // Danger threshold line
             {
-              label: 'Danger',
               data: Array(dataPoints.length).fill(2000),
-              borderColor: 'rgba(239,68,68,0.6)',
-              borderWidth: 1.5,
-              borderDash: [6, 4],
+              borderColor: 'rgba(239,68,68,0.5)',
+              borderWidth: 1,
+              borderDash: [5, 5],
               pointRadius: 0,
               fill: false,
-              tension: 0,
             },
-            // Warning threshold line
             {
-              label: 'Warning',
               data: Array(dataPoints.length).fill(1000),
-              borderColor: 'rgba(245,158,11,0.6)',
-              borderWidth: 1.5,
-              borderDash: [6, 4],
+              borderColor: 'rgba(245,158,11,0.5)',
+              borderWidth: 1,
+              borderDash: [5, 5],
               pointRadius: 0,
               fill: false,
-              tension: 0,
             }
           ]
         },
@@ -301,65 +280,49 @@
           responsive: false,
           maintainAspectRatio: false,
           animation: false,
+          layout: { padding: { top: 10, right: 10, bottom: 0, left: 0 } },
           plugins: {
             legend: { display: false },
             tooltip: {
+              filter: item => item.datasetIndex === 0,
               callbacks: {
-                label: ctx => ctx.datasetIndex === 0 ? `Gas: ${ctx.parsed.y} ppm` : null,
+                label: ctx => `${ctx.parsed.y} ppm`,
                 title: ctx => ctx[0].label
-              },
-              filter: item => item.datasetIndex === 0
+              }
             }
           },
           scales: {
             x: {
               ticks: {
                 color: '#64748b',
-                maxRotation: 45,
-                minRotation: 30,
                 font: { size: 10 },
+                maxRotation: 30,
                 autoSkip: true,
-                maxTicksLimit: 20
+                maxTicksLimit: 15
               },
-              grid: { color: '#2d3a4b' }
+              grid: { color: 'rgba(45,58,75,0.6)' }
             },
             y: {
-              beginAtZero: true,
               min: 0,
-              max: 5000,
-              grid: { color: '#2d3a4b' },
+              max: yMax,
+              grid: { color: 'rgba(45,58,75,0.6)' },
               ticks: {
                 color: '#64748b',
-                font: { size: 10 },
-                stepSize: 1000,
-                callback: val => val >= 1000 ? (val/1000) + 'k' : val
+                font: { size: 11 },
+                stepSize: yMax / 4,
+                callback: val => val >= 1000 ? (val / 1000).toFixed(0) + 'k' : val
               }
             }
           }
         }
       });
 
-      // Scroll to latest (rightmost)
       setTimeout(() => {
         const s = document.getElementById('chart-scroll');
         s.scrollLeft = s.scrollWidth;
       }, 50);
     }
 
-    // ===================== ZOOM =====================
-    function zoomChart(direction) {
-      if (!currentData.length) return;
-      if (direction === 'in') pointWidth = Math.min(pointWidth + 8, 80);
-      else if (direction === 'out') pointWidth = Math.max(pointWidth - 6, 6);
-      else pointWidth = 18; // reset
-
-      const chartInner = document.getElementById('chart-inner');
-      const wrapper = chartInner.parentElement;
-      const canvasWidth = Math.max(wrapper.clientWidth, currentData.length * pointWidth);
-      chartInner.style.width = canvasWidth + 'px';
-      document.getElementById('gasChart').style.width = canvasWidth + 'px';
-      initChart(currentLabels, currentData);
-    }
 
     // ===================== LOAD HISTORY =====================
     async function loadHistory() {
@@ -369,18 +332,16 @@
 
         if (!rows.length) return;
 
-        // rows are newest-first → reverse to oldest-first for chart
         const sorted = rows.slice().reverse();
-
-        // Show only HH:MM:SS as label
         const labels = sorted.map(r => r.timestamp.split(' ')[1] || r.timestamp);
         const dataPoints = sorted.map(r => r.gas);
 
-        // Set canvas width based on current zoom level
         const chartInner = document.getElementById('chart-inner');
-        const canvasWidth = Math.max(chartInner.parentElement.clientWidth, sorted.length * pointWidth);
+        const wrapper = chartInner.parentElement;
+        const canvasWidth = Math.max(wrapper.clientWidth, sorted.length * POINT_WIDTH);
         chartInner.style.width = canvasWidth + 'px';
         document.getElementById('gasChart').style.width = canvasWidth + 'px';
+        document.getElementById('gasChart').style.height = '220px';
 
         initChart(labels, dataPoints);
         document.getElementById('chart-count').innerText = `${sorted.length} readings`;
