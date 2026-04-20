@@ -111,7 +111,7 @@
             <div class="relative flex items-center justify-center">
               <svg class="w-40 h-40 sm:w-48 sm:h-48 transform -rotate-90" viewBox="0 0 160 160">
                 <circle class="text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
-                <circle class="text-success transition-all duration-1000" cx="80" cy="80" fill="transparent" id="gauge-circle" r="70" stroke="currentColor" stroke-dasharray="439.8" stroke-dashoffset="439.8" stroke-width="12"></circle>
+                <circle class="transition-all duration-700" cx="80" cy="80" fill="transparent" id="gauge-circle" r="70" stroke="#10b981" stroke-dasharray="439.8" stroke-dashoffset="439.8" stroke-width="12"></circle>
               </svg>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <span class="text-4xl sm:text-5xl font-black" id="gas-value">--</span>
@@ -407,19 +407,19 @@
       const stateText = document.getElementById('gas-state-text');
 
       if (value > 2000) {
-        circle.className = 'text-danger transition-all duration-1000';
+        circle.style.stroke = '#ef4444'; // danger red
         statusLabel.innerText = 'DANGER'; statusLabel.className = 'text-danger font-bold text-base sm:text-lg';
         alertBanner.classList.remove('hidden');
         stateIconBg.className = 'size-12 rounded-lg bg-danger/20 flex items-center justify-center text-danger';
         stateIcon.innerText = 'error'; stateText.innerText = 'Danger';
       } else if (value > 1000) {
-        circle.className = 'text-warning transition-all duration-1000';
+        circle.style.stroke = '#f59e0b'; // warning yellow
         statusLabel.innerText = 'WARNING'; statusLabel.className = 'text-warning font-bold text-base sm:text-lg';
         alertBanner.classList.add('hidden');
         stateIconBg.className = 'size-12 rounded-lg bg-warning/20 flex items-center justify-center text-warning';
         stateIcon.innerText = 'warning'; stateText.innerText = 'Warning';
       } else {
-        circle.className = 'text-success transition-all duration-1000';
+        circle.style.stroke = '#10b981'; // safe green
         statusLabel.innerText = 'SAFE'; statusLabel.className = 'text-success font-bold text-base sm:text-lg';
         alertBanner.classList.add('hidden');
         stateIconBg.className = 'size-12 rounded-lg bg-success/20 flex items-center justify-center text-success';
